@@ -57,7 +57,6 @@ _start:
 	# instruction set extensions are not initialized yet. The GDT should be
 	# loaded here. Paging should be enabled here. C++ features such as global
 	# constructors and exceptions will require runtime support to work as well.
-	call terminal_initialize
 	# Enter the high-level kernel.
 	call kernel_main
 

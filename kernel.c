@@ -29,7 +29,7 @@ enum vga_color {
 	COLOR_WHITE = 15,
 };
  
-uint8_t make_color(enum vga_color fg, enum vga_color bg) {
+uint8_t make_color(uint8_t fg, uint8_t bg) {
 	return fg | bg << 4;
 }
  
@@ -49,61 +49,61 @@ size_t strlen(const char* str) {
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 25;
  
-size_t terminal_row;
-size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_buffer;
-uint8_t c;
+typedef struct {
+	uint16_t row;
+	uint16_t column;
+	uint8_t color;
+	uint16_t* buffer;
+} Terminal;
 
-void terminal_initialize() {
-	c = 'c';
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
+Terminal terminal;
+extern void terminal_initialize(Terminal*) __asm__ ("boot.kernel.InitializeTerminal");
+ 
+void reset_terminal_buffer(Terminal* t) {
+	t->buffer = (uint16_t*)(0xB8000);
 	for (size_t y = 0; y < VGA_HEIGHT; y++) {
 		for (size_t x = 0; x < VGA_WIDTH; x++) {
 			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = make_vgaentry(' ', terminal_color);
+			t->buffer[index] = make_vgaentry(' ', t->color);
 		}
 	}
+
 }
- 
 void terminal_setcolor(uint8_t color) {
-	terminal_color = color;
+	terminal.color = color;
 }
  
 void terminal_putentryat(char c, uint8_t color, size_t x, size_t y) {
 	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = make_vgaentry(c, color);
+	terminal.buffer[index] = make_vgaentry(c, color);
 }
  
 void terminal_putchar(char c) {
 	if (c == '\n') {
-		terminal_column = 0;
-		if (terminal_row < VGA_HEIGHT-1) {
-			terminal_row++;
+		terminal.column = 0;
+		if (terminal.row < VGA_HEIGHT-1) {
+			terminal.row++;
 		} else {
 			/* scroll everything up 1 row */
 			for(size_t y = 1; y < VGA_HEIGHT; y++) {
 				for(size_t x = 0; x < VGA_WIDTH; x++) {
 					const size_t idx = y * VGA_WIDTH + x;
-					terminal_buffer[idx-VGA_WIDTH] = terminal_buffer[idx];
+					terminal.buffer[idx-VGA_WIDTH] = terminal.buffer[idx];
 				}
 			}
 			/* clear the last row. */
 			for(size_t x = 0; x < VGA_WIDTH; x++) {
-				terminal_putentryat(' ', terminal_color, x, VGA_HEIGHT-1);
+				terminal_putentryat(' ', terminal.color, x, VGA_HEIGHT-1);
 			}
 		}
 			
 		return;
 	}
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if (++terminal_column == VGA_WIDTH) {
-		terminal_column = 0;
-		if (++terminal_row == VGA_HEIGHT) {
-			terminal_row = 0;
+	terminal_putentryat(c, terminal.color, terminal.column, terminal.row);
+	if (++terminal.column == VGA_WIDTH) {
+		terminal.column = 0;
+		if (++terminal.row == VGA_HEIGHT) {
+			terminal.row = 0;
 		}
 	}
 }
@@ -114,19 +114,25 @@ void terminal_writestring(const char* data) {
 		terminal_putchar(data[i]);
 }
 
-extern void foo(uint8_t* c) __asm__ ("boot.kernel.Testo");
 void kernel_main() {
 	/* Initialize terminal interface */
-	//terminal_initialize();
-	//Testo(&c);
-	//for (;;) {
-		terminal_writestring("Hello, kernel World!\n");
-	foo(&c);
-	terminal_putentryat(c, terminal_color, 1, 1);
-	//}
+	terminal_initialize(&terminal);
+	for(;;)
+	terminal_writestring("Hello, kernel World!\n");
 }
 
+
+// Stuff that go uses that I don't understand. This should go in it's own file.
 void __go_print_string(char *s) {
 	terminal_writestring(s);
 }
 
+uintptr_t __go_type_hash_identity(const void *a, uintptr_t b) { return 0;}
+
+typedef struct FuncVal FuncVal;
+struct FuncVal {
+	void (*fn)(void);
+};
+
+FuncVal __go_type_hash_identity_descriptor;
+FuncVal __go_type_equal_identity_descriptor;
