@@ -57,7 +57,7 @@ _start:
 	# instruction set extensions are not initialized yet. The GDT should be
 	# loaded here. Paging should be enabled here. C++ features such as global
 	# constructors and exceptions will require runtime support to work as well.
-
+	call terminal_initialize
 	# Enter the high-level kernel.
 	call kernel_main
 
@@ -78,4 +78,3 @@ _start:
 # Set the size of the _start symbol to the current location '.' minus its start.
 # This is useful when debugging or when you implement call tracing.
 .size _start, . - _start
-

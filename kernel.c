@@ -9,7 +9,6 @@ void s(int x) {
 	}
 }
 
-
 /* Hardware text mode color constants. */
 enum vga_color {
 	COLOR_BLACK = 0,
@@ -54,8 +53,10 @@ size_t terminal_row;
 size_t terminal_column;
 uint8_t terminal_color;
 uint16_t* terminal_buffer;
- 
+uint8_t c;
+
 void terminal_initialize() {
+	c = 'c';
 	terminal_row = 0;
 	terminal_column = 0;
 	terminal_color = make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
@@ -112,13 +113,20 @@ void terminal_writestring(const char* data) {
 	for (size_t i = 0; i < datalen; i++)
 		terminal_putchar(data[i]);
 }
- 
+
+extern void foo(uint8_t* c) __asm__ ("boot.kernel.Testo");
 void kernel_main() {
 	/* Initialize terminal interface */
-	terminal_initialize();
- 
-	for (;;) {
+	//terminal_initialize();
+	//Testo(&c);
+	//for (;;) {
 		terminal_writestring("Hello, kernel World!\n");
-	}
+	foo(&c);
+	terminal_putentryat(c, terminal_color, 1, 1);
+	//}
+}
+
+void __go_print_string(char *s) {
+	terminal_writestring(s);
 }
 
