@@ -45,5 +45,6 @@ func InitializeTerminal(t *Terminal) {
 	t.Column = 0
 	t.Color = MakeColor(COLOR_LIGHT_GREY, COLOR_BLACK)
 	resetbuffer(t)
+	print("Hello", 3," ", 16," ", 32," ", 0x0a, " ", 0x010, " ", 123455, " ", int64(1 << 54)," Negative:", -1, "Goodbye")
 
 }

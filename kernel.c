@@ -117,22 +117,9 @@ void terminal_writestring(const char* data) {
 void kernel_main() {
 	/* Initialize terminal interface */
 	terminal_initialize(&terminal);
-	for(;;)
+/*	for(;;)
 	terminal_writestring("Hello, kernel World!\n");
+*/
 }
 
 
-// Stuff that go uses that I don't understand. This should go in it's own file.
-void __go_print_string(char *s) {
-	terminal_writestring(s);
-}
-
-uintptr_t __go_type_hash_identity(const void *a, uintptr_t b) { return 0;}
-
-typedef struct FuncVal FuncVal;
-struct FuncVal {
-	void (*fn)(void);
-};
-
-FuncVal __go_type_hash_identity_descriptor;
-FuncVal __go_type_equal_identity_descriptor;
