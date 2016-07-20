@@ -5,7 +5,7 @@ LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 
 ASMOBJS=boot.o
 COBJS=print.o kernel.o
-GOOBJS=t.o
+GOOBJS=t.o itoa.o
 
 all: myos.bin
 
