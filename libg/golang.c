@@ -17,7 +17,34 @@ void __go_print_string(char *s) {
 
 void __go_register_gc_roots(void) { }
 
-char* itoa(uint64_t) __asm__ ("boot.kernel.Itoa");
+
+// This should be done in Go, but there's not enough of the go
+// runtime implemented to do it properly yet.
+void printdec(int64_t i) {
+	// The highest int64_t is  18446744073709551616, a
+	// 			12345678901234567890
+	// 20 digit string. Since we don't have a malloc/free yet,
+	// just use a 20 character array to store the string representation.
+	// We need to do this, because the obvious algorithm counts it backwards
+	// so we need to store an intermediary and then print the reverse.
+	char c[21];
+	
+	if (i < 0) {
+		putchar('-');
+		i = -i;
+	}
+	int digit = 0;
+	while(i) {
+		c[digit++] = i % 10;
+		i = i / 10;
+	}
+
+	while(digit--) {
+		putchar(c[digit] + '0');
+	}
+	
+	
+}
 
 // These keywords are *not* available, because there's no malloc or free
 // defined, but they get linked to, so there needs to be a stub.
@@ -39,9 +66,10 @@ void __go_print_int64(int64_t i) {
 			putchar(thebyte+('a'-10));
 		}
 	}
-	//putchar("(");
-	//putchar(itoa(i));
-	//putchar(")");
+	putchar(' ');
+	putchar('(');
+	printdec(i);
+	putchar(')');
 }
 void __go_print_uint64(uint64_t i) {
 	 __go_print_int64((int64_t)i);
