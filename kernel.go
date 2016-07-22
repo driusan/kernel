@@ -35,6 +35,11 @@ type Terminal struct {
 	Buffer *uint16
 }
 
+var Term *Terminal
+
+func init() {
+	Term = &Terminal{}
+}
 func MakeColor(fg, bg Color) Color {
 	return fg | bg<<4
 }
@@ -66,7 +71,6 @@ func (t *Terminal) PutChar(c byte) {
 				t.PutEntryAt(' ', t.Color, x, VGA_HEIGHT-1)
 			}
 		}
-
 		return
 	}
 
@@ -91,13 +95,24 @@ func InitializeTerminal(t *Terminal) {
 	t.Row = 0
 	t.Column = 0
 	t.Color = MakeColor(COLOR_LIGHT_GREY, COLOR_BLACK)
-	//resetbuffer(t)
 	t.Buffer = (*uint16)(unsafe.Pointer(uintptr(0xB8000)))
 	for y := uint16(0); y < VGA_HEIGHT; y++ {
 		for x := uint16(0); x < VGA_WIDTH; x++ {
 			t.PutEntryAt(' ', t.Color, x, y)
 		}
 	}
-	print(len("hello"))
-	print("Hello", 3, " ", 16, " ", 32, " ", 0x0a, " ", 0x010, " ", 123455, " ", int64(1<<54), " Negative:", -1, "Goodbye")
+}
+
+type BootInfo struct {
+	Flags,
+	MemLower,
+	MemUpper uint32
+}
+
+func KernelMain(bi *BootInfo) {
+	InitializeTerminal(Term)
+	print(bi.MemLower, "kb of memory in lower memory.\n")
+	print(bi.MemUpper, "kb of memory in lower memory.\n")
+	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
+	print("\nGoodbye, kernel world.\n")
 }

@@ -58,7 +58,10 @@ _start:
 	# loaded here. Paging should be enabled here. C++ features such as global
 	# constructors and exceptions will require runtime support to work as well.
 	# Enter the high-level kernel.
-	call kernel_main
+	# push %eax, %esp
+leal -4(%esp), %esp
+movl %ebx, (%esp)
+	call boot.kernel.KernelMain
 
 	# If the system has nothing more to do, put the computer into an infinite
 	# loop. To do that:

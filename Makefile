@@ -4,13 +4,13 @@ GO=/home/driusan/opt/cross/bin/i686-elf-gccgo
 LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 
 ASMOBJS=boot.o
-COBJS=print.o kernel.o
-GOOBJS=t.o itoa.o
+COBJS=libg/golang.o libg/kernel.o
+GOOBJS=kernel.o itoa.o
 
 all: myos.bin
 
 clean:
-	rm -f *.o myos.bin	
+	rm -f *.o myos.bin libg/*.o	
 
 %.o: %.s
 	${AS} $< -o $@
@@ -22,7 +22,7 @@ clean:
 	${GO} -c $< -o $@ -Wall -Wextra -fgo-prefix=boot
 
 myos.bin: $(ASMOBJS) $(COBJS) $(GOOBJS)
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o -lgcc
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib libg/*.o *.o -lgcc
 
 run: myos.bin
 	qemu-system-x86_64 -kernel myos.bin
