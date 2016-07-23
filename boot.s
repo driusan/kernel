@@ -58,9 +58,10 @@ _start:
 	# loaded here. Paging should be enabled here. C++ features such as global
 	# constructors and exceptions will require runtime support to work as well.
 	# Enter the high-level kernel.
-	# push %eax, %esp
-leal -4(%esp), %esp
-movl %ebx, (%esp)
+
+	# Add the multiboot info onto the stack as the first parameter to KernelMain
+	leal -4(%esp), %esp
+	movl %ebx, (%esp)
 	call boot.kernel.KernelMain
 
 	# If the system has nothing more to do, put the computer into an infinite
@@ -80,3 +81,27 @@ movl %ebx, (%esp)
 # Set the size of the _start symbol to the current location '.' minus its start.
 # This is useful when debugging or when you implement call tracing.
 .size _start, . - _start
+
+.text
+.globl enablePaging
+enablePaging:
+	push %ebp
+	mov %esp, %ebp
+	mov %cr0, %eax
+	or $0x80000000, %eax
+	mov %eax, %cr0
+	mov %ebp, %esp
+	pop %ebp
+	#push %ebx
+	ret
+
+.text
+.globl loadPageDirectory
+loadPageDirectory:
+	push %ebp
+	mov %esp, %ebp
+	mov 8(%esp), %eax
+	mov %eax, %cr3
+	mov %ebp, %esp
+	pop %ebp
+	ret

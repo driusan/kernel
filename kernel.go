@@ -103,6 +103,11 @@ func InitializeTerminal(t *Terminal) {
 	}
 }
 
+//extern initialize_paging
+func InitializePaging()
+
+// Represents information passed along from multiboot compliant
+// bootloader
 type BootInfo struct {
 	Flags,
 	MemLower,
@@ -114,5 +119,31 @@ func KernelMain(bi *BootInfo) {
 	print(bi.MemLower, "kb of memory in lower memory.\n")
 	print(bi.MemUpper, "kb of memory in lower memory.\n")
 	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
-	print("\nGoodbye, kernel world.\n")
+	/*
+		print("Setting address 0x60000 to the character 'c'\n")
+		var ptr *uint16 = (*uint16)(unsafe.Pointer(uintptr(0x60000)))
+		*ptr = 'c'
+
+		print("Printing address 0x6000.\n")
+		ptr = (*uint16)(unsafe.Pointer(uintptr(0x60000)))
+		print(*ptr)
+
+		print("\nPrinting address 0x7000.\n")
+		ptr = (*uint16)(unsafe.Pointer(uintptr(0x70000)))
+		print(*ptr)
+
+		print("\nInitializing the paging.\n")
+	*/
+	InitializePaging()
+
+	/*
+		print("\nPrinting address 0x6000.\n")
+		ptr = (*uint16)(unsafe.Pointer(uintptr(0x60000)))
+		print(*ptr)
+		print("\nPrinting address 0x7000.\n")
+		ptr = (*uint16)(unsafe.Pointer(uintptr(0x70000)))
+		print(*ptr)
+
+		print("\nGoodbye, kernel world.\n")
+	*/
 }
