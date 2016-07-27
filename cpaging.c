@@ -34,14 +34,6 @@ void initialize_paging() {
 	// Mark the first page table
 	for (i = 0; i < 1024; i++) {
 		first_page_table[i] = (i*0x1000) | PagePresent | PageReadWrite;
-
-		// Swap 2 arbitrary memory locations to make sure paging is working
-		if (i*0x1000 == 0x60000) {
-			first_page_table[i] = 0x70000 | 3;
-		}
-		if (i*0x1000 == 0x70000) {
-			first_page_table[i] = 0x60000 | 3;
-		}
 	}
 	page_directory[0] = ((uint32_t)first_page_table) | PagePresent | PageReadWrite;
 	loadPageDirectory(page_directory);

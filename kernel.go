@@ -106,6 +106,18 @@ func InitializeTerminal(t *Terminal) {
 //extern initialize_paging
 func InitializePaging()
 
+//extern gdt_install
+func GdtInstall()
+
+//extern idt_install
+func IdtInstall()
+
+//extern irq_install
+func IrqInstall()
+
+//extern causeFault
+func CauseFault()
+
 // Represents information passed along from multiboot compliant
 // bootloader
 type BootInfo struct {
@@ -115,10 +127,18 @@ type BootInfo struct {
 }
 
 func KernelMain(bi *BootInfo) {
+
+	GdtInstall()
+	IdtInstall()
+	InitializePaging()
+
+	IrqInstall()
 	InitializeTerminal(Term)
 	print(bi.MemLower, "kb of memory in lower memory.\n")
-	print(bi.MemUpper, "kb of memory in lower memory.\n")
+	print(bi.MemUpper, "kb of memory in upper memory.\n")
 	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
 
-	InitializePaging()
+	// Test the interrupt handler by doing a divide by zero operation.
+	// The divide by zero is done in C, because 
+	CauseFault()
 }

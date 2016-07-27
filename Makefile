@@ -4,9 +4,9 @@ GO=/home/driusan/opt/cross/bin/i686-elf-gccgo
 LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 
 ASMOBJS=boot.o
-COBJS=libg/golang.o libg/kernel.o cpaging.o
+COBJS=libg/golang.o libg/kernel.o cpaging.o gdt.o idt.o irq.o isrs.o
 
-GOSRC=itoa.go kernel.go #test.go #//paging.go
+GOSRC=itoa.go kernel.go #gdt.go
 
 all: myos.bin
 
@@ -20,11 +20,14 @@ clean:
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra -O0
 
 kernel.o: $(GOSRC)
+	# Go files all need to be compiled together, or they'll complain when
+	# calling functions in other files.
 	${GO} -c *.go -o kernel.o -Wall -Wextra -fgo-prefix=boot
 
 myos.bin: $(ASMOBJS) $(COBJS) kernel.o
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib libg/*.o *.o -lgcc -O0
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib libg/*.o *.o -lgcc
 
 run: myos.bin
-	qemu-system-x86_64 -kernel myos.bin
+	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error
+	qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot
 
