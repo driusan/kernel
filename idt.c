@@ -65,10 +65,10 @@ void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, uns
 /* Installs the IDT */
 void idt_install()
 {
-	terminal_writestring("In IDT Install");
-	__go_print_int64((sizeof (struct idt_entry) * 256) -1);
-	terminal_writestring(" ");
-	__go_print_int64(sizeof (struct idt_entry));
+//	terminal_writestring("In IDT Install");
+//	__go_print_int64((sizeof (struct idt_entry) * 256) -1);
+//	terminal_writestring(" ");
+//	__go_print_int64(sizeof (struct idt_entry));
     /* Sets the special IDT pointer up, just like in 'gdt.c' */
     idtp.limit = (sizeof (struct idt_entry) * 256) - 1;
     idtp.base = &idt;

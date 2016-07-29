@@ -106,9 +106,6 @@ func InitializeTerminal(t *Terminal) {
 //extern initialize_paging
 func InitializePaging()
 
-//extern gdt_install
-func GdtInstall()
-
 //extern idt_install
 func IdtInstall()
 
@@ -127,13 +124,13 @@ type BootInfo struct {
 }
 
 func KernelMain(bi *BootInfo) {
+	InitializeTerminal(Term)
 
 	GdtInstall()
 	IdtInstall()
 	InitializePaging()
 
 	IrqInstall()
-	InitializeTerminal(Term)
 	print(bi.MemLower, "kb of memory in lower memory.\n")
 	print(bi.MemUpper, "kb of memory in upper memory.\n")
 	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
