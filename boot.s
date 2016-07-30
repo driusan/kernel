@@ -109,7 +109,7 @@ loadPageDirectory:
 .text
 .globl gdt_flush
 gdt_flush:
-	lgdt boot.kernel.Gp
+	lgdt boot.kernel.GDTPtr
 	mov $0x10, %ax
 	mov %ax, %ds
 	mov %ax, %es
@@ -124,7 +124,7 @@ flush2:
 
 .globl idt_load
 idt_load:
-	lidt idtp
+	lidt boot.kernel.IDTPtr
 	ret
 
 .text

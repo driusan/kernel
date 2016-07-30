@@ -55,7 +55,7 @@ func (e *GdtEntry) SetAccess(b byte) {
 }
 
 func (e *GdtEntry) SetGranularity(b byte) {
-	e[6] = b// e[6] = b&0x0F | e[6]&0xF0
+	e[6] = b // e[6] = b&0x0F | e[6]&0xF0
 }
 
 /*struct gdt_entry
@@ -69,19 +69,21 @@ func (e *GdtEntry) SetGranularity(b byte) {
 } __attribute__((packed));
 */
 
-type GdtPtr [6]byte
+type DescriptorTablePointer [6]byte
 
-func (e *GdtPtr) SetSize(l uint16) {
+func (e *DescriptorTablePointer) SetSize(l uint16) {
 	e[1] = byte((l & 0xFF00) >> 8)
 	e[0] = byte(l & 0x00FF)
 }
 
-func (e *GdtPtr) SetBase(l uintptr) {
+func (e *DescriptorTablePointer) SetBase(l uintptr) {
 	e[5] = byte((l & 0xFF000000) >> 24)
 	e[4] = byte((l & 0x00FF0000) >> 16)
 	e[3] = byte((l & 0x0000FF00) >> 8)
 	e[2] = byte((l & 0x000000FF))
 }
+
+type GDTPointer DescriptorTablePointer
 
 /* Special pointer which includes the limit: The max bytes
 *  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
@@ -96,7 +98,7 @@ func (e *GdtPtr) SetBase(l uintptr) {
 var Gdt [3]GdtEntry
 
 //struct gdt_entry gdt[3];
-var Gp GdtPtr
+var GDTPtr DescriptorTablePointer
 
 //struct gdt_ptr gp;
 
@@ -137,10 +139,9 @@ func GdtSetGate(num int, base, limit uint32, access, gran byte) {
 *  finally call gdt_flush() in our assembler file in order
 *  to tell the processor where the new GDT is and update the
 *  new segment registers */
-//export gdt_install_go
-func GdtInstall() { //addr uintptr) {
+func GDTInstall() { //addr uintptr) {
 	/* Setup the GDT pointer and limit */
-	p := &Gp
+	p := &GDTPtr
 	p.SetSize((8 /* sizeof gdt_entry */ * 3 /* num entries */) - 1)
 	p.SetBase(uintptr(unsafe.Pointer(&Gdt)))
 

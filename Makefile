@@ -4,9 +4,9 @@ GO=/home/driusan/opt/cross/bin/i686-elf-gccgo
 LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 
 ASMOBJS=boot.o
-COBJS=libg/golang.o libg/kernel.o cpaging.o idt.o irq.o isrs.o
+COBJS=libg/golang.o libg/kernel.o cpaging.o isrs.o irq.o
 
-GOSRC=itoa.go kernel.go gdt.go
+GOSRC=itoa.go kernel.go gdt.go idt.go
 
 all: myos.bin
 
