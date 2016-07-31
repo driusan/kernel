@@ -3,7 +3,7 @@ CC=/home/driusan/opt/cross/bin/i686-elf-gcc
 GO=/home/driusan/opt/cross/bin/i686-elf-gccgo
 LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 
-ASMOBJS=boot.o
+ASMOBJS=boot.o interrupts.o
 COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.o \
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/mem.o \
