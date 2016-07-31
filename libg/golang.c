@@ -6,19 +6,38 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "runtime.h"
+#include "go-type.h"
 // Used for __go_print_*
-void terminal_writestring(const char* data);
-void putchar(char c);
+extern void terminal_writestring(const char* data);
+extern void putchar(char c);
+extern void halt(void);
 
+void __go_panic(void) {
+	terminal_writestring("Kernel panic. TODO: Add more debug info here.");
+	halt();
+}
 // Stuff that go uses that I don't understand. This should go in it's own file.
 void __go_print_string(char *s) {
 	terminal_writestring(s);
 }
 
-void __go_register_gc_roots(void) { }
-void __go_runtime_error(void) { }
+void __go_print_nl(void) {
+	terminal_writestring("\n");
+}
+
+void __go_print_pointer(void *p) {
+	terminal_writestring("Pointer: ");
+	__go_print_uint64((uint64) p);
+}
+void __go_register_gc_roots(struct root_list *roots __attribute__((unused))) { }
 
 
+void
+runtime_panicstring(const char* error) { //__attribute__ ((noreturn)) {
+	terminal_writestring(error);
+	halt();
+}
 // This should be done in Go, but there's not enough of the go
 // runtime implemented to do it properly yet.
 void printdec(int64_t i) {
@@ -51,8 +70,7 @@ void printdec(int64_t i) {
 // defined, but they get linked to, so there needs to be a stub.
 void __go_new(void) { }
 void __go_append(void) { }
-void __gccgo_personality_v0(void) {}
-
+//void __gccgo_personality_v0(void) {}
 void __go_print_int64(int64_t i) {
 	// Write it in hex. Just go through every byte and print the 0-F
 	// representation. This is easier than converting to a decimal.
@@ -77,20 +95,4 @@ void __go_print_int64(int64_t i) {
 void __go_print_uint64(uint64_t i) {
 	 __go_print_int64((int64_t)i);
 }
-
-uintptr_t __go_type_hash_identity(const void *a, uintptr_t b) {
-	--a; a++;
-	// This is meaningless. It's just to make gcc stop complaining about
-	return b;
-}
-
-typedef struct FuncVal FuncVal;
-struct FuncVal {
-	void (*fn)(void);
-};
-
-FuncVal __go_type_hash_identity_descriptor;
-FuncVal __go_type_equal_identity_descriptor;
-FuncVal __go_type_hash_error_descriptor;
-FuncVal __go_type_equal_error_descriptor;
 

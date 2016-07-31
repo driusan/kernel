@@ -49,6 +49,9 @@ var IDTPtr DescriptorTablePointer
 //extern idt_load
 func IDTLoad()
 
+//extern isrs_install
+func ISRSInstall()
+
 /* Use this function to set an entry in the IDT. Alot simpler
 *  than twiddling with the GDT ;) */
 func IDTSetGate(num byte, base uint32, selector uint16, flags byte) {
@@ -59,9 +62,6 @@ func IDTSetGate(num byte, base uint32, selector uint16, flags byte) {
 	gate[3] = 0
 }
 
-//extern isrs_install
-func ISRSInstall()
-
 /* Installs the IDT */
 func IDTInstall() {
 	//	terminal_writestring("In IDT Install");
@@ -70,7 +70,7 @@ func IDTInstall() {
 	//	__go_print_int64(sizeof (struct idt_entry));
 	/* Sets the special IDT pointer up, just like in 'gdt.c' */
 	p := &IDTPtr
-	p.SetSize( 8 /* sizeof IDTEntry */ * 256 /* len(IDT) */ - 1)
+	p.SetSize(8 /* sizeof IDTEntry */ *256 /* len(IDT) */ - 1)
 	p.SetBase(uintptr(unsafe.Pointer(&IDT)))
 
 	// Clear out the entire IDT, initializing it to zeros. I'm not sure if

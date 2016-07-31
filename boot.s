@@ -338,7 +338,9 @@ isr_common_stub:
 	mov %ax, %gs
 	mov %esp, %eax
 	push %eax
-	call fault_handler # mov fault_handler, %eax
+	call boot.kernel.CPUFaultHandler
+	#call fault_handler
+	# mov fault_handler, %eax
 	# call %eax
 	pop %eax
 	pop %gs
