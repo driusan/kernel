@@ -204,10 +204,10 @@ isr_common_stub:
 	mov %ax, %gs
 	mov %esp, %eax
 	push %eax
-	call boot.kernel.CPUFaultHandler
+	#call boot.kernel.CPUFaultHandler
 	#call fault_handler
-	# mov fault_handler, %eax
-	# call %eax
+	mov $boot.kernel.CPUFaultHandler, %eax
+	call *%eax
 	pop %eax
 	pop %gs
 	pop %fs
@@ -216,7 +216,6 @@ isr_common_stub:
 	popa
 	add $8, %esp
 	iret
-
 .text
 .globl irq0
 .globl irq1
@@ -234,12 +233,10 @@ isr_common_stub:
 .globl irq13
 .globl irq14
 .globl irq15
-
 irq0:
 	cli
 	push $0
 	push $32
-	hlt
 	jmp irq_common_stub
 irq1:
 	cli
@@ -323,17 +320,20 @@ irq_common_stub:
 	push %es
 	push %fs
 	push %gs
+
 	mov $0x10, %ax
 	mov %ax, %ds
 	mov %ax, %es
 	mov %ax, %fs
 	mov %ax, %gs
-	mov %ax, %ds
+	# mov %ax, %ds
 	mov %esp, %eax
+
 	push %eax
-	mov irq_handler, %eax
+	mov $boot.kernel.IRQHandler, %eax
 	call *%eax
 	pop %eax
+
 	pop %gs
 	pop %fs
 	pop %es
@@ -341,3 +341,10 @@ irq_common_stub:
 	popa
 	add $8, %esp
 	iret
+
+
+.text
+.globl enable_interrupts
+enable_interrupts:
+	sti
+	ret

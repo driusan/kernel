@@ -59,9 +59,11 @@ func (r Registers) InterruptDescription() string {
 // All ISRs point to this function in boot.s. When it's called, interrupts
 // have been disabled.
 func CPUFaultHandler(r *Registers) {
+	print("In system fault handler")
 	if r.InterruptNo < 32 {
 		print(r.InterruptDescription(), " Exception. System Halted!\n")
-		Halt()
+	} else {
+		print("Unknown CPU Fault, ", r.InterruptNo)
+		panic("CPUFaultHandler called with invalid interrupt number")
 	}
-	panic("CPUFaultHandler called with invalid interrupt number")
 }

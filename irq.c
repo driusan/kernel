@@ -113,49 +113,13 @@ void irq_install()
     idt_set_gate(46, (unsigned)irq14, 0x08, 0x8E);
     idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
 
+	// enable the kb
+	outportb(0x21, 0xfd);
+	// *or* enable the kb and timer
+	//outportb(0x21, 0xfc);
+
+	outportb(0xa1, 0xff);
     __asm__ __volatile__("sti");
-}
-
-/* Each of the IRQ ISRs point to this function, rather than
-*  the 'fault_handler' in 'isrs.c'. The IRQ Controllers need
-*  to be told when you are done servicing them, so you need
-*  to send them an "End of Interrupt" command (0x20). There
-*  are two 8259 chips: The first exists at 0x20, the second
-*  exists at 0xA0. If the second controller (an IRQ from 8 to
-*  15) gets an interrupt, you need to acknowledge the
-*  interrupt at BOTH controllers, otherwise, you only send
-*  an EOI command to the first controller. If you don't send
-*  an EOI, you won't raise any more IRQs */
-void irq_handler(struct regs *r)
-{
-   //terminal_writestring("In IRQ Handler");
-   //halt();
-    /* This is a blank function pointer */
-    void (*handler)(struct regs *r);
-
-    /* Find out if we have a custom handler to run for this
-    *  IRQ, and then finally, run it */
-    handler = irq_routines[r->int_no - 32];
-    if (handler)
-    {
-        handler(r);
-    } else {
-	terminal_writestring("No handler for fault");
-	}
-
-    /* If the IDT entry that was invoked was greater than 40
-    *  (meaning IRQ8 - 15), then we need to send an EOI to
-    *  the slave controller */
-    if (r->int_no >= 40)
-    {
-	terminal_writestring("IRQ8-15");
-        outportb(0xA0, 0x20);
-    }
-
-    /* In either case, we need to send an EOI to the master
-    *  interrupt controller too */
-    outportb(0x20, 0x20);
-	halt();
 }
 
 void causeFault() {

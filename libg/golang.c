@@ -12,16 +12,20 @@
 extern void terminal_writestring(const char* data);
 extern void putchar(char c);
 extern void halt(void);
+void __go_print_uint64(uint64_t i);
 
 void __go_panic(void) {
 	terminal_writestring("Kernel panic. TODO: Add more debug info here.");
 	halt();
 }
+
 // Stuff that go uses that I don't understand. This should go in it's own file.
 void __go_print_string(char *s) {
 	terminal_writestring(s);
 }
-
+void __go_print_space(void) {
+	terminal_writestring(" ");
+}
 void __go_print_nl(void) {
 	terminal_writestring("\n");
 }

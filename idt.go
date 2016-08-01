@@ -82,9 +82,6 @@ func IDTInstall() {
 			IDT[i][j] = 0
 		}
 	}
-
-	/* Add any new ISRs to the IDT here using idt_set_gate */
-	ISRSInstall()
-	/* Points the processor's internal register to the new IDT */
 	IDTLoad()
+
 }
