@@ -114,9 +114,9 @@ void irq_install()
     idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
 
 	// enable the kb
-	outportb(0x21, 0xfd);
+	//outportb(0x21, 0xfd);
 	// *or* enable the kb and timer
-	//outportb(0x21, 0xfc);
+	outportb(0x21, 0xfc);
 
 	outportb(0xa1, 0xff);
     __asm__ __volatile__("sti");

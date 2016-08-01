@@ -33,6 +33,7 @@ func KernelMain(bi *BootInfo) {
 	IrqInstall()
 	IRQInstallGo()
 
+	InstallHandler(0, TimerHandler)
 	InstallHandler(1, KeyboardHandler)
 	// runs an STI instruction to enable interrupts
 	EnableInterrupts()

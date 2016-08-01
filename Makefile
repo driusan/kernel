@@ -8,7 +8,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/mem.o \
 	cpaging.o irq.o isrs.o
-GOSRC=kernel.go gdt.go idt.go isrs.go irq.go keyboard.go
+GOSRC=kernel.go gdt.go idt.go isrs.go irq.go keyboard.go timer.go
 
 all: myos.bin
 
