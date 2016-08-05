@@ -1,7 +1,9 @@
 package kernel
 
+import "asm"
+
 func KeyboardHandler(r *Registers) {
-	scancode := inportb(0x60)
+	scancode := asm.INB(0x60)
 
 	if scancode&0x80 != 0 {
 		println("Released key")

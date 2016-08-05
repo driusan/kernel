@@ -1,0 +1,14 @@
+This directory contains C definitions for symbols that gccgo links against.
+
+golang.c contains definitions of the symbols that are needed to not get link
+errors because they were referenced somewhere in the kernel Go code. kernel.c
+contains references to functions in the Go kernel that are needed by golang.c. 
+
+Everything else is taken from the gccgo runtime frontend, to ensure that the
+signatures match what's expected. The LICENSE file in this directory applies
+to those files.
+
+In any more symbols are missing, see: 
+https://github.com/golang/gofrontend/tree/master/libgo/runtime
+to figure out what they should be defined as.
+ 

@@ -70,16 +70,8 @@ void printdec(int64_t i) {
 	
 }
 
-// These keywords are *not* available, because there's no malloc or free
-// defined, but they get linked to, so there needs to be a stub.
-void __go_new(void) { }
-void __go_append(void) { }
-//void __gccgo_personality_v0(void) {}
-void __go_print_int64(int64_t i) {
-	// Write it in hex. Just go through every byte and print the 0-F
-	// representation. This is easier than converting to a decimal.
-	printdec(i);
-	/*
+
+void printhex(int64_t i) {
 	terminal_writestring("0x");
 
 	for(char j = 15; j >= 0; j--) {
@@ -91,10 +83,15 @@ void __go_print_int64(int64_t i) {
 			putchar(thebyte+('a'-10));
 		}
 	}
-	putchar(' ');
-	putchar('(');
+
+}
+// These keywords are *not* available, because there's no malloc or free
+// defined, but they get linked to, so there needs to be a stub.
+void __go_new(void) { }
+void __go_append(void) { }
+//void __gccgo_personality_v0(void) {}
+void __go_print_int64(int64_t i) {
 	printdec(i);
-	putchar(')');*/
 }
 void __go_print_uint64(uint64_t i) {
 	 __go_print_int64((int64_t)i);

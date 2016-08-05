@@ -36,6 +36,7 @@ func KernelMain(bi *BootInfo) {
 	InstallHandler(0, TimerHandler)
 	InstallHandler(1, KeyboardHandler)
 	// runs an STI instruction to enable interrupts
+
 	EnableInterrupts()
 
 	// Now that everything is configured, print the memory.
@@ -45,6 +46,9 @@ func KernelMain(bi *BootInfo) {
 	println(bi.Flags)
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
+
+	checkAllBuses()
+
 	for {
 		//print("In loop")
 		// TODO: After interrupts are working try putting a HLT
