@@ -1,5 +1,7 @@
 package kernel
 
+import "pci"
+
 //extern initialize_paging
 func InitializePaging()
 
@@ -47,7 +49,7 @@ func KernelMain(bi *BootInfo) {
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
 
-	checkAllBuses()
+	pci.EnumerateAllBuses()
 
 	for {
 		//print("In loop")

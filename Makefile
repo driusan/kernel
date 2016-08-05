@@ -9,8 +9,9 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/mem.o \
 	asm/inout.o \
 	cpaging.o irq.o isrs.o
-GOSRC=kernel.go gdt.go idt.go isrs.go irq.go keyboard.go timer.go pci.go
+GOSRC=kernel.go gdt.go idt.go isrs.go irq.go keyboard.go timer.go
 ASMPKGSRC=asm/inout.go
+PCIPKGSRC=asm/pci.go
 
 all: myos.bin
 
@@ -19,6 +20,8 @@ clean:
 
 asm.o: ${ASMPKGSRC} asm/inout.o
 	${GO} -c asm/*.go -o asm.o -Wall -Wextra -fgo-prefix=boot
+pci.o: ${ASMPKGSRC}
+	${GO} -c pci/*.go -o pci.o -Wall -Wextra -fgo-prefix=boot
 
 %.o: %.s
 	${AS} $< -o $@
@@ -26,10 +29,10 @@ asm.o: ${ASMPKGSRC} asm/inout.o
 %.o: %.c  
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
-kernel.o: $(GOSRC) asm.o
+kernel.o: $(GOSRC) asm.o pci.o
 	${GO} -c *.go -o kernel.o -Wall -Wextra -fgo-prefix=boot
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o -lgcc
 
 run: myos.bin

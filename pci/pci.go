@@ -1,10 +1,13 @@
-package kernel
+package pci
+
 import "asm"
 
 //extern printhex
 func printhex(int64)
 
-func checkAllBuses() {
+// Prints all devices found on the PCI Bus.
+// TODO: Return a struct representing them instead.
+func EnumerateAllBuses() {
 	var bus, device uint8
 
 	for bus = 0; bus <= 255; bus++ {
