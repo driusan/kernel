@@ -1,4 +1,4 @@
-package kernel
+package descriptortables
 
 import "unsafe"
 

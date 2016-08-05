@@ -1,6 +1,9 @@
 #include "isrs.h"
 // defined in idt.go
-void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags) __asm__("boot.kernel.IDTSetGate");
+void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags) __asm__("boot.descriptortables.IDTSetGate");
+
+// defined in asm package, but gets linked in directly.
+extern void outb (unsigned short _port, unsigned char _data);
 
 /*
  * Stolen from osdever.net/bkerndev/Docs/irqs.htm
@@ -96,9 +99,4 @@ void irq_install()
 	outb(0x21, 0xfc);
 
 	outb(0xa1, 0xff);
-    __asm__ __volatile__("sti");
-}
-
-void causeFault() {
-	int i = 3 / 0;
 }

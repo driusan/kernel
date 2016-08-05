@@ -37,11 +37,13 @@ void __go_print_pointer(void *p) {
 void __go_register_gc_roots(struct root_list *roots __attribute__((unused))) { }
 
 
-void
-runtime_panicstring(const char* error) { //__attribute__ ((noreturn)) {
+void runtime_panicstring(const char* error) {
 	terminal_writestring(error);
-	halt();
+	// Halt only needs to be called once, but the for loop fixes a compiler
+	// warning about __noreturn__ function returning.
+	for (;;) halt();
 }
+
 // This should be done in Go, but there's not enough of the go
 // runtime implemented to do it properly yet.
 void printdec(int64_t i) {

@@ -1,8 +1,11 @@
 package kernel
 
-import "asm"
+import (
+	"asm"
+	"interrupts"
+)
 
-func KeyboardHandler(r *Registers) {
+func KeyboardHandler(r *interrupts.Registers) {
 	scancode := asm.INB(0x60)
 
 	if scancode&0x80 != 0 {

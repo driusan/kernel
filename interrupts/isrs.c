@@ -1,7 +1,7 @@
 #include "isrs.h"
 
 // defined in idt.go
-extern void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags) __asm__("boot.kernel.IDTSetGate");
+extern void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags) __asm__("boot.descriptortables.IDTSetGate");
 
 /*
  * Stolen from osdever.net/bkerndev/Docs/isrs.htm

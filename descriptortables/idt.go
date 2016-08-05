@@ -1,4 +1,4 @@
-package kernel
+package descriptortables
 
 import "unsafe"
 
@@ -48,9 +48,6 @@ var IDTPtr DescriptorTablePointer
 /* This exists in 'start.asm', and is used to load our IDT */
 //extern idt_load
 func IDTLoad()
-
-//extern isrs_install
-func ISRSInstall()
 
 /* Use this function to set an entry in the IDT. Alot simpler
 *  than twiddling with the GDT ;) */

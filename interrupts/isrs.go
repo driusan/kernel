@@ -1,4 +1,13 @@
-package kernel
+package interrupts
+
+//extern isrs_install
+func isrsInstallC()
+
+func ISRSInstall() {
+	// for some reason the extern symbol doesn't get linked if this function
+	// is empty, so just make a stub that calls the extern
+	isrsInstallC()	
+}
 
 // Stores the state of CPU registers
 type Registers struct {
