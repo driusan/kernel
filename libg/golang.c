@@ -79,19 +79,26 @@ void printdec(int64_t i) {
 
 
 void printhex(int64_t i) {
-	if (i == 0) {
-	terminal_writestring("0x0");
-	return;
-	}
 	terminal_writestring("0x");
+	if (i == 0) {
+		terminal_writestring("0");
+		return;
+	}
 
+
+	int foundByte = 0;	
 	for(char j = 15; j >= 0; j--) {
 		uint64_t mask = 0xF << (j*4);
 		char thebyte = (i & mask) >> (j*4);
+		if (thebyte != 0) {
+			foundByte = 1;
+		}
+		if(foundByte) {
 		if (thebyte < 10) {
 			putchar(thebyte+'0');
 		} else {
 			putchar(thebyte+('a'-10));
+		}
 		}
 	}
 
