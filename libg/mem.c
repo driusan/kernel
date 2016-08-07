@@ -21,5 +21,17 @@ void* memcpy(void *dst, const void *src, size_t n) {
 		cdst[i] = csrc[i];
 	}
 	return (void *)(cdst + i);
+}
 
+
+void* memset(void *b, int c, size_t len) {
+}
+
+void* malloc(size_t amt) {
+	return 0;
+}
+void free(void *ptr) {
+}
+
+void abort(void) {
 }

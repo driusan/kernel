@@ -60,8 +60,7 @@ _start:
 	# Enter the high-level kernel.
 
 	# Add the multiboot info onto the stack as the first parameter to KernelMain
-	leal -4(%esp), %esp
-	movl %ebx, (%esp)
+	push %ebx
 	call boot.kernel.KernelMain
 	# If the system has nothing more to do, put the computer into an infinite
 	# loop. To do that:

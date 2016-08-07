@@ -8,6 +8,7 @@
 
 #include "runtime.h"
 #include "go-type.h"
+#include "unwind.h"
 // Used for __go_print_*
 extern void terminal_writestring(const char* data);
 extern void putchar(char c);
@@ -20,8 +21,8 @@ void __go_panic(void) {
 }
 
 // Stuff that go uses that I don't understand. This should go in it's own file.
-void __go_print_string(char *s) {
-	terminal_writestring(s);
+void __go_print_string(struct String s) {
+	terminal_writestring(s.str);
 }
 void __go_print_space(void) {
 	terminal_writestring(" ");
@@ -74,6 +75,10 @@ void printdec(int64_t i) {
 
 
 void printhex(int64_t i) {
+	if (i == 0) {
+	terminal_writestring("0x0");
+	return;
+	}
 	terminal_writestring("0x");
 
 	for(char j = 15; j >= 0; j--) {
@@ -91,7 +96,6 @@ void printhex(int64_t i) {
 // defined, but they get linked to, so there needs to be a stub.
 void __go_new(void) { }
 void __go_append(void) { }
-//void __gccgo_personality_v0(void) {}
 void __go_print_int64(int64_t i) {
 	printdec(i);
 }
@@ -99,3 +103,19 @@ void __go_print_uint64(uint64_t i) {
 	 __go_print_int64((int64_t)i);
 }
 
+
+/*
+Lots of symbols aren't defined for this, so just register 
+__gccgo_personality_v0 as void below and hope for the best.
+*/
+/*
+_Unwind_Reason_Code
+PERSONALITY_FUNCTION (int, _Unwind_Action, _Unwind_Exception_Class,
+		      struct _Unwind_Exception *, struct _Unwind_Context *)
+  __attribute__ ((no_split_stack, flatten)) {
+}*/
+
+void __gccgo_personality_v0(void) {
+	//__go_print_string("In __gccgo_personality_v0\n");
+
+};// __attribute__ ((no_split_stack, flatten));

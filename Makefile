@@ -6,6 +6,8 @@ LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 ASMOBJS=boot.o interrupts/interrupts.o asm/int.s
 COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.o \
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
+	libg/go-type-interface.o \
+	libg/go-typedesc-equal.o \
 	libg/mem.o \
 	asm/inout.o \
 	memory/cpaging.o interrupts/irq.o interrupts/isrs.o

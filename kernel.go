@@ -20,8 +20,10 @@ func KernelMain(bi *BootInfo) {
 	// First init the video, so that we can print debug messages.
 	InitializeTerminal()
 
-	memory.InitializePaging()
+	// Initialize packages with package level variables
+	pci.InitPkg()
 
+	memory.InitializePaging()
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
 	descriptortables.IDTInstall()
@@ -41,8 +43,10 @@ func KernelMain(bi *BootInfo) {
 	print(bi.MemUpper, "kb of memory in upper memory.\n")
 	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
 
+	print("About to enumerate\n")
 	pci.EnumerateDevices()
 
+	print("Enumerated devices\n")
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
 	for {

@@ -1,62 +1,99 @@
 package pci
 
-import "asm"
+import (
+	"asm"
+	//"fmt"
+)
+
+type VendorID uint16
+type DeviceID uint16
 
 //extern printhex
 func printhex(int64)
 
 type Device struct {
 	BusID uint8
-	DevID uint8
+	Slot  uint8
+
+	Vendor VendorID
+	Device DeviceID
+}
+
+type PCIError string
+
+func (p PCIError) Error() string {
+	return string(p)
+}
+
+var NoDevice PCIError
+
+// global variable initializations don't work in freestanding mode, so we
+// need to manually initialize the package with a function
+func InitPkg() {
+	NoDevice = PCIError("No such device")
 }
 
 // Prints all devices found on the PCI Bus.
-// TODO: Return a struct representing them instead.
-// Malloc/Free are required for returning a slice.
-func EnumerateDevices() { //[]Device {
-	var bus, device uint8
-	//var devices []Device
+// TODO: Dynamically create the slice instead of having a fixed
+// array of the maximum size once Malloc/Free are implemented
+func EnumerateDevices() { //[256 * 32]Device{
+	//var devices [256*32]Device
+	for b := 0; b < 256; b++ {
+		busDevices := EnumerateBus(uint8(b))
 
-	for bus = 0; bus <= 255; bus++ {
-		for device = 0; device < 32; device++ {
-			d := checkDevice(bus, device)
-			if d != 0 {
-				printhex(int64(d))
-				print("\n")
+		//println("Finished bus ")
+		//printhex(int64(bus))
+		//print("\n")
+		for i, d := range busDevices {
+			if d.Vendor != 0xFFFF {
+				println(b, i, d.Vendor)
 			}
-		}
-
-		// without this, the counter will overflow and get into
-		// an infinite loop, but if we change the comparison to <
-		// we could technically miss the last device
-		if bus == 255 {
-			break
+			//devices[(bus*32)+i] = d
 		}
 	}
 	//return devices
 }
 
-func checkDevice(bus, device uint8) uint32 {
-	vendorID := getVendorID(bus, device)
-	if vendorID == 0xFFFF {
-		return 0
+func EnumerateBus(busNum uint8) (devices [32]Device) {
+	for device := uint8(0); device < 32; device++ {
+		d := &devices[device]
+		d.BusID = busNum
+		d.Slot = device
+
+		err := d.Probe()
+
+		if err == nil {
+			/*print(device, " ")
+			printhex(int64(devices[device].Vendor))
+			print(" ")
+			printhex(int64(devices[device].Device))
+			print("\n") */
+		} else {
+			d.Vendor = 0xFFFF
+		}
 	}
-	return uint32(vendorID)
+	return devices
 }
 
-func PCIConfigReadRegister(bus, slot, fnc, offset uint8) uint32 {
+func (d Device) ReadWord(fnc, offset uint8) uint16 {
 	var address uint32
-	address = uint32(bus)<<16 |
-		uint32(slot)<<11 |
+	address = uint32(d.BusID)<<16 |
+		uint32(d.Slot)<<11 |
 		uint32(fnc)<<8 |
 		uint32(offset&0xfc) | uint32(0x80000000)
 	asm.OUTL(0xCF8, address)
-	return (uint32(asm.INL(0xCFC) >> (uint32(offset&2) * 8)))
+	return (uint16(asm.INL(0xCFC) >> (uint16(offset&2) * 8)))
 }
 
-func getVendorID(bus, slot uint8) uint32 {
-	if vendor := PCIConfigReadRegister(bus, slot, 0, 0); vendor != 0xFFFFFFFF {
-		return vendor
+func (d *Device) Probe() error {
+	vendor := d.ReadWord(0, 0)
+	if vendor != 0xFFFF {
+		d.Vendor = VendorID(vendor)
+		d.Device = DeviceID(d.ReadWord(0, 2))
+		//(vendor >> 8) & 0xFFFF)
+		return nil
 	}
-	return 0
+	d.Vendor = 0xFFFF
+	d.Device = 0
+	return NoDevice
 }
