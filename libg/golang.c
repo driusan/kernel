@@ -48,6 +48,10 @@ void runtime_panicstring(const char* error) {
 // This should be done in Go, but there's not enough of the go
 // runtime implemented to do it properly yet.
 void printdec(int64_t i) {
+	if(i == 0) {
+		putchar('0');
+		return;
+	}
 	// The highest int64_t is  18446744073709551616, a
 	// 			12345678901234567890
 	// 20 digit string. Since we don't have a malloc/free yet,
