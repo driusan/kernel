@@ -6,6 +6,7 @@ import (
 	"interrupts"
 	"memory"
 	"pci"
+	"ps2"
 )
 
 // Represents information passed along from multiboot compliant
@@ -22,6 +23,8 @@ func KernelMain(bi *BootInfo) {
 
 	// Initialize packages with package level variables
 	pci.InitPkg()
+	ps2.InitPkg()
+	ps2.EnableMouse()
 
 	memory.InitializePaging()
 	// Set up the GDT and interrupt handlers
@@ -34,7 +37,9 @@ func KernelMain(bi *BootInfo) {
 	interrupts.IRQInstall()
 
 	interrupts.InstallHandler(0, TimerHandler)
-	interrupts.InstallHandler(1, KeyboardHandler)
+	interrupts.InstallHandler(1, ps2.KeyboardHandler)
+	interrupts.InstallHandler(12, ps2.MouseHandler)
+
 	// runs an STI instruction to enable interrupts
 	interrupts.Enable()
 

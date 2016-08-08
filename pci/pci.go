@@ -63,11 +63,11 @@ func EnumerateBus(busNum uint8) (devices [32]Device) {
 		err := d.Probe()
 
 		if err == nil {
-			/*print(device, " ")
+			print(device, " ")
 			printhex(int64(devices[device].Vendor))
 			print(" ")
 			printhex(int64(devices[device].Device))
-			print("\n") */
+			print("\n")
 		} else {
 			d.Vendor = 0xFFFF
 		}

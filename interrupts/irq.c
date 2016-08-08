@@ -93,10 +93,13 @@ void irq_install()
     idt_set_gate(46, (unsigned)irq14, 0x08, 0x8E);
     idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
 
-	// enable the kb
-	outb(0x21, 0xfd);
-	// *or* enable the kb and timer
-	//outb(0x21, 0xfc);
 
-	outb(0xa1, 0xff);
+    // enable only the kb
+    //outb(0x21, 0xfd);
+    // enable only the kb and timer
+    //outb(0x21, 0xfc);
+
+    // Don't mask any interrupts
+    outb(0x21, 0x00);
+    outb(0xa1, 0x00);
 }
