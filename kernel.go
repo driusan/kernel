@@ -1,6 +1,7 @@
 package kernel
 
 import (
+	"acpi"
 	"asm"
 	"descriptortables"
 	"interrupts"
@@ -23,9 +24,27 @@ func KernelMain(bi *BootInfo) {
 
 	// Initialize packages with package level variables
 	pci.InitPkg()
+	acpi.InitPkg()
 	ps2.InitPkg()
 	ps2.EnableMouse()
 
+	ptr, err := acpi.FindRSDP()
+
+	// if we don't declare this ahead of time gccgo complains about
+	// goto skipping over its definition
+	var rsdt *acpi.RSDT
+	if err != nil {
+		println(err.Error())
+		goto errExit
+	} 
+
+	println("Found ACPI Table at", ptr, " from OEM", string(ptr.OEMID[:]))
+	rsdt, err = ptr.GetRSDT()
+	if err != nil {
+		println(err.Error())
+		goto errExit
+	}
+	println("RSDT Signature:", string(rsdt.Signature[:]))
 	memory.InitializePaging()
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
@@ -48,13 +67,16 @@ func KernelMain(bi *BootInfo) {
 	print(bi.MemUpper, "kb of memory in upper memory.\n")
 	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
 
-	print("About to enumerate\n")
+	print("PCI Devices on system: \n")
 	pci.EnumerateDevices()
-
-	print("Enumerated devices\n")
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
+	
 	for {
 		asm.HLT()
 	}
+
+	// If there's an error, this will return back to boot.s, which will
+	// disable interrupts and HLT in a loop.
+	errExit:
 }

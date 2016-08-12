@@ -13,7 +13,7 @@ var curPacketIdx uint8
 
 // the complete current packet. Normal PS2 is 3 bytes, Intellimouse is 4,
 // so reserve an array of 4 bytes just in case. This may need to increase
-// if multitouch drivers are ever added
+// if multitouch drivers are ever added.
 var curPacket [4]byte
 
 func sendPS2AuxCmd(cmd byte) error {

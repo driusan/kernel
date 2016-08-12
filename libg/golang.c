@@ -13,6 +13,8 @@
 extern void terminal_writestring(const char* data);
 extern void putchar(char c);
 extern void halt(void);
+
+void printhex(int64_t i);
 void __go_print_uint64(uint64_t i);
 
 void __go_panic(void) {
@@ -32,8 +34,10 @@ void __go_print_nl(void) {
 }
 
 void __go_print_pointer(void *p) {
-	terminal_writestring("Pointer: ");
-	__go_print_uint64((uint64) p);
+	printhex((int64_t) p);
+
+	//terminal_writestring("Pointer: ");
+	//__go_print_uint64((uint64) p);
 }
 void __go_register_gc_roots(struct root_list *roots __attribute__((unused))) { }
 
@@ -130,3 +134,12 @@ void __gccgo_personality_v0(void) {
 	//__go_print_string("In __gccgo_personality_v0\n");
 
 };// __attribute__ ((no_split_stack, flatten));
+
+String
+__go_byte_array_to_string (const void* p, intgo len)
+{
+	String ret;
+	ret.str = (const unsigned char *)p;
+	ret.len = len;
+	return ret;
+}

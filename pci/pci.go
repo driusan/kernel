@@ -46,9 +46,13 @@ func EnumerateDevices() { //[256 * 32]Device{
 		//print("\n")
 		for i, d := range busDevices {
 			if d.Vendor != 0xFFFF {
-				println(b, i, d.Vendor)
+			print(i, " ")
+			printhex(int64(d.Vendor))
+			print(" ")
+			printhex(int64(d.Device))
+			print("\n")
+
 			}
-			//devices[(bus*32)+i] = d
 		}
 	}
 	//return devices
@@ -62,13 +66,10 @@ func EnumerateBus(busNum uint8) (devices [32]Device) {
 
 		err := d.Probe()
 
-		if err == nil {
-			print(device, " ")
-			printhex(int64(devices[device].Vendor))
-			print(" ")
-			printhex(int64(devices[device].Device))
-			print("\n")
-		} else {
+		if err != nil {
+			// This should have been handled by d.Probe()
+			// but for some reason doesn't work, so needs
+			// to be explicitly propagated.
 			d.Vendor = 0xFFFF
 		}
 	}

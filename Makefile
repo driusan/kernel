@@ -17,6 +17,8 @@ PCIPKGSRC=pci/pci.go
 INTERRUPTSPKGSRC=interrupts/isrs.go interrupts/irq.go
 DTABLEPKGSRC=descriptortables/gdt.go descriptortables/idt.go
 PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
+ACPIPKGSRC=acpi/find.go
+
 all: myos.bin
 
 clean:
@@ -39,17 +41,20 @@ memory.o: ${MEMPKGSRC} memory/cpaging.o
 
 ps2.o: ${PS2PKGSRC}
 	${GO} -c input/ps2/*.go -o ps2.o -Wall -Wextra -fgo-prefix=boot
-	
+
+acpi.o: ${ACPIPKGSRC}
+	${GO} -c acpi/*.go -o acpi.o -Wall -Wextra -fgo-prefix=boot
+
 %.o: %.s
 	${AS} $< -o $@
 
 %.o: %.c  
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
-kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o
+kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o acpi.o
 	${GO} -c *.go -o kernel.o -Wall -Wextra -fgo-prefix=boot
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o acpi.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o -lgcc
 
 run: myos.bin
