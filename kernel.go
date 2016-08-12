@@ -36,7 +36,7 @@ func KernelMain(bi *BootInfo) {
 	if err != nil {
 		println(err.Error())
 		goto errExit
-	} 
+	}
 
 	println("Found ACPI Table at", ptr, " from OEM", string(ptr.OEMID[:]))
 	rsdt, err = ptr.GetRSDT()
@@ -45,6 +45,11 @@ func KernelMain(bi *BootInfo) {
 		goto errExit
 	}
 	println("RSDT Signature:", string(rsdt.Signature[:]))
+	// TODO: Initialize multiple CPUs based on the MADT table in ACPI.
+	// There's not really much reason to do that until there's something
+	// for the CPUs to do, though.
+	// Should also probably try and enter long mode here.
+
 	memory.InitializePaging()
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
@@ -71,12 +76,12 @@ func KernelMain(bi *BootInfo) {
 	pci.EnumerateDevices()
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
-	
+
 	for {
 		asm.HLT()
 	}
 
 	// If there's an error, this will return back to boot.s, which will
 	// disable interrupts and HLT in a loop.
-	errExit:
+errExit:
 }

@@ -5,6 +5,7 @@ import "unsafe"
 var NoACPIFound, InvalidChecksum error
 
 type ACPIError string
+
 func (e ACPIError) Error() string {
 	return string(e)
 }
@@ -14,17 +15,17 @@ func InitPkg() {
 }
 
 type RSDPtr struct {
-	Signature   [8]byte
-	Checksum    uint8
-	OEMID       [6]byte
-	Revision    uint8
+	Signature [8]byte
+	Checksum  uint8
+	OEMID     [6]byte
+	Revision  uint8
 
 	// The RSDT is stored as a 32-bit pointer according to the ACPI spec.
 	// This is unexported and not a pointer so that it will load and
 	// serialize correctly regardless of the pointer size of the system,
 	// ie we can't be sure that the compiler won't decide that a *RSDT is
 	// a 64-bit pointer.
-	// The GetRSDT method converts the int to 
+	// The GetRSDT method converts the int to
 	rsdtAddress uint32
 }
 
@@ -32,6 +33,7 @@ type RSDPtr struct {
 type RSDT struct {
 	Signature [4]byte
 }
+
 func (r RSDPtr) GetRSDT() (*RSDT, error) {
 	return (*RSDT)(unsafe.Pointer(uintptr(r.rsdtAddress))), nil
 }

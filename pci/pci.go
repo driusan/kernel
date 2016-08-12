@@ -26,31 +26,65 @@ func (p PCIError) Error() string {
 }
 
 var NoDevice PCIError
+var Invalid PCIError
 
 // global variable initializations don't work in freestanding mode, so we
 // need to manually initialize the package with a function
 func InitPkg() {
 	NoDevice = PCIError("No such device")
+	Invalid = PCIError("Invalid parameter")
 }
 
 // Prints all devices found on the PCI Bus.
 // TODO: Dynamically create the slice instead of having a fixed
 // array of the maximum size once Malloc/Free are implemented
 func EnumerateDevices() { //[256 * 32]Device{
-	//var devices [256*32]Device
+	var header HeaderType
+	var class Class
+	var err error
+
 	for b := 0; b < 256; b++ {
 		busDevices := EnumerateBus(uint8(b))
 
-		//println("Finished bus ")
-		//printhex(int64(bus))
-		//print("\n")
 		for i, d := range busDevices {
 			if d.Vendor != 0xFFFF {
-			print(i, " ")
-			printhex(int64(d.Vendor))
-			print(" ")
-			printhex(int64(d.Device))
-			print("\n")
+				header, err = d.GetHeaderType()
+				if err != nil {
+					print(err.Error())
+					continue
+				}
+
+				if header.IsMultifunction() {
+					for f := uint8(0); f < 8; f++ {
+						err := (&d).Probe(f)
+						if err == nil {
+							print(i, " ")
+							printhex(int64(d.Vendor))
+							print(" ")
+							printhex(int64(d.Device))
+							print(" ", f, " ")
+
+							class, err = d.GetClass(f)
+							print(class.String())
+
+							print("\n")
+						}
+
+					}
+
+				} else {
+					print(i, " ")
+					printhex(int64(d.Vendor))
+					print(" ")
+					printhex(int64(d.Device))
+
+					class, err = d.GetClass(0)
+					if err == nil {
+						print(" ", class.String())
+					}
+					print("\n")
+
+				}
 
 			}
 		}
@@ -64,7 +98,7 @@ func EnumerateBus(busNum uint8) (devices [32]Device) {
 		d.BusID = busNum
 		d.Slot = device
 
-		err := d.Probe()
+		err := d.Probe(0)
 
 		if err != nil {
 			// This should have been handled by d.Probe()
@@ -86,15 +120,33 @@ func (d Device) ReadWord(fnc, offset uint8) uint16 {
 	return (uint16(asm.INL(0xCFC) >> (uint16(offset&2) * 8)))
 }
 
-func (d *Device) Probe() error {
-	vendor := d.ReadWord(0, 0)
+func (d *Device) Probe(fnc uint8) error {
+	if fnc > 8 {
+		return Invalid
+	}
+	vendor := d.ReadWord(fnc, 0)
 	if vendor != 0xFFFF {
 		d.Vendor = VendorID(vendor)
-		d.Device = DeviceID(d.ReadWord(0, 2))
-		//(vendor >> 8) & 0xFFFF)
+		d.Device = DeviceID(d.ReadWord(fnc, 2))
 		return nil
 	}
 	d.Vendor = 0xFFFF
 	d.Device = 0
 	return NoDevice
+}
+
+func (d *Device) GetClass(fnc uint8) (Class, error) {
+	if d.Vendor == 0xFFFF {
+		return 0xFFFF, NoDevice
+	}
+	classAndSub := d.ReadWord(fnc, 10)
+	return Class(classAndSub), nil
+}
+
+func (d Device) GetHeaderType() (HeaderType, error) {
+	if d.Vendor == 0xFFFF {
+		return 0, NoDevice
+	}
+	bistAndHeader := d.ReadWord(0, 14)
+	return HeaderType(bistAndHeader & 0xFF), nil
 }

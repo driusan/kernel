@@ -13,7 +13,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	memory/cpaging.o interrupts/irq.o interrupts/isrs.o
 GOSRC=kernel.go keyboard.go timer.go
 ASMPKGSRC=asm/inout.go
-PCIPKGSRC=pci/pci.go
+PCIPKGSRC=pci/pci.go pci/class.go pci/header.go
 INTERRUPTSPKGSRC=interrupts/isrs.go interrupts/irq.go
 DTABLEPKGSRC=descriptortables/gdt.go descriptortables/idt.go
 PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go

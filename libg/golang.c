@@ -24,7 +24,10 @@ void __go_panic(void) {
 
 // Stuff that go uses that I don't understand. This should go in it's own file.
 void __go_print_string(struct String s) {
-	terminal_writestring(s.str);
+	for(intgo i = 0; i < s.len; i++) {
+		putchar(s.str[i]); //terminal_writestring(s.str);
+
+	}
 }
 void __go_print_space(void) {
 	terminal_writestring(" ");
