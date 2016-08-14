@@ -1,5 +1,7 @@
 // TODO: Port these to real assembly, instead of single line
 // C functions.
+#include <stdint.h>
+
 unsigned char inb (unsigned short _port)
 {
     unsigned char rv;
@@ -16,6 +18,12 @@ unsigned long inl (unsigned short _port)
 {
     unsigned long rv;
     __asm__ __volatile__ ("inl %1, %0" : "=a" (rv) : "dN" (_port));
+    return rv;
+}
+unsigned long inw (unsigned short _port)
+{
+    uint16_t rv;
+    __asm__ __volatile__ ("inw %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
 

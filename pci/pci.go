@@ -12,8 +12,9 @@ type DeviceID uint16
 func printhex(int64)
 
 type Device struct {
-	BusID uint8
-	Slot  uint8
+	BusID    uint8
+	Slot     uint8
+	Function uint8
 
 	Vendor VendorID
 	Device DeviceID

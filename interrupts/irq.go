@@ -42,7 +42,7 @@ func IRQHandler(r *Registers) {
 		//print("IRQ8-15")
 		asm.OUTB(0xa0, 0x20)
 	} else {
-		//print("IRQ0-14")
+		//print("IRQ0-8")
 	}
 	asm.OUTB(0x20, 0x20)
 }

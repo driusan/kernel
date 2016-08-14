@@ -18,11 +18,12 @@ INTERRUPTSPKGSRC=interrupts/isrs.go interrupts/irq.go
 DTABLEPKGSRC=descriptortables/gdt.go descriptortables/idt.go
 PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
 ACPIPKGSRC=acpi/find.go
+IDEPKGSRC=ide/identify.go ide/drive.go
 
 all: myos.bin
 
 clean:
-	rm -f *.o myos.bin libg/*.o asm/*.o pci/*.o interrupts/*.o	
+	rm -f *.o myos.bin libg/*.o asm/*.o pci/*.o interrupts/*.o ide/*.o	
 
 interrupts.o: ${INTERRUPTSPKGSRC} interrupts/irq.o interrupts/isrs.o descriptortables.o
 	${GO} -c interrupts/*.go -o interrupts.o -Wall -Wextra -fgo-prefix=boot
@@ -32,6 +33,9 @@ descriptortables.o: ${DTABLEPKGSRC}
 
 asm.o: ${ASMPKGSRC} asm/inout.o asm/int.o
 	${GO} -c asm/*.go -o asm.o -Wall -Wextra -fgo-prefix=boot
+
+ide.o: ${IDEPKGSRC} asm.o
+	${GO}  -c ide/*.go -o ide.o -Wall -Wextra -fgo-prefix=boot
 
 pci.o: ${PCIPKGSRC}
 	${GO} -c pci/*.go -o pci.o -Wall -Wextra -fgo-prefix=boot
@@ -51,13 +55,13 @@ acpi.o: ${ACPIPKGSRC}
 %.o: %.c  
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
-kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o acpi.o
+kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o acpi.o ide.o
 	${GO} -c *.go -o kernel.o -Wall -Wextra -fgo-prefix=boot
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o acpi.o
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o ps2.o acpi.o ide.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o -lgcc
 
 run: myos.bin
 	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error
-	qemu-system-x86_64 -m 4G -show-cursor -kernel myos.bin -no-reboot
+	qemu-system-x86_64 -m 4G -show-cursor -hda test.img -kernel myos.bin -no-reboot
 

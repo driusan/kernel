@@ -20,7 +20,12 @@ func OUTB(port uint16, data byte) {
 	outb(port, data)
 }
 
-//
+//extern inw
+func inw(port uint16) uint16
+
+func INW(port uint16) uint16 {
+	return inw(port)
+}
 //extern outb
 func outb(port uint16, data byte)
 

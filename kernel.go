@@ -6,6 +6,7 @@ import (
 	"descriptortables"
 	"interrupts"
 	"memory"
+	"ide"
 	"pci"
 	"ps2"
 )
@@ -25,14 +26,15 @@ func KernelMain(bi *BootInfo) {
 	// Initialize packages with package level variables
 	pci.InitPkg()
 	acpi.InitPkg()
+	ide.InitPkg()
 	ps2.InitPkg()
-	ps2.EnableMouse()
 
 	ptr, err := acpi.FindRSDP()
 
 	// if we don't declare this ahead of time gccgo complains about
 	// goto skipping over its definition
 	var rsdt *acpi.RSDT
+	var drive ide.IDEDrive
 	if err != nil {
 		println(err.Error())
 		goto errExit
@@ -50,6 +52,13 @@ func KernelMain(bi *BootInfo) {
 	// for the CPUs to do, though.
 	// Should also probably try and enter long mode here.
 
+	// Identify the by polling drive before interrupts are enabled.
+	drive, err = ide.IdentifyDrive(ide.PrimaryDrive)
+	if err != nil {
+		println("Drive error:", err.Error())
+	}
+
+	ps2.EnableMouse()
 	memory.InitializePaging()
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
@@ -63,9 +72,11 @@ func KernelMain(bi *BootInfo) {
 	interrupts.InstallHandler(0, TimerHandler)
 	interrupts.InstallHandler(1, ps2.KeyboardHandler)
 	interrupts.InstallHandler(12, ps2.MouseHandler)
+	interrupts.InstallHandler(14, ide.PrimaryDriveHandler)
+
+	interrupts.Enable()
 
 	// runs an STI instruction to enable interrupts
-	interrupts.Enable()
 
 	// Now that everything is configured, print the memory.
 	print(bi.MemLower, "kb of memory in lower memory.\n")
@@ -74,9 +85,15 @@ func KernelMain(bi *BootInfo) {
 
 	print("PCI Devices on system: \n")
 	pci.EnumerateDevices()
+
+	err = ide.ReadLBA(drive, 1)
+	err = ide.ReadLBA(drive, 0)
+	if err != nil {
+		println("Drive error:", err.Error())
+	}
+
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
-
 	for {
 		asm.HLT()
 	}

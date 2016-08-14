@@ -2,6 +2,10 @@ package pci
 
 type Class uint16
 
+const (
+	IDEController = Class(0x0101)
+)
+
 func (c Class) GetClass() byte {
 	return byte((c >> 8) & 0xFF)
 }
