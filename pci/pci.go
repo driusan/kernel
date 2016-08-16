@@ -1,7 +1,7 @@
 package pci
 
 import (
-	"asm"
+	"github.com/driusan/kernel/asm"
 	//"fmt"
 )
 

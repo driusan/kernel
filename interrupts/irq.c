@@ -1,6 +1,6 @@
 #include "isrs.h"
 // defined in idt.go
-void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags) __asm__("boot.descriptortables.IDTSetGate");
+void idt_set_gate(unsigned char num, unsigned long base, unsigned short sel, unsigned char flags) __asm__("github_com_driusan_kernel_descriptortables.IDTSetGate");
 
 // defined in asm package, but gets linked in directly.
 extern void outb (unsigned short _port, unsigned char _data);

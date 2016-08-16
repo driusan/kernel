@@ -26,6 +26,8 @@
 .section .bootstrap_stack, "aw", @nobits
 stack_bottom:
 .skip 16384 # 16 KiB
+.skip 131072 # 128 KiB
+#.skip 655360 # 640KiB oughta be enough for anyone
 stack_top:
 
 # The linker script specifies _start as the entry point to the kernel and the
@@ -61,7 +63,7 @@ _start:
 
 	# Add the multiboot info onto the stack as the first parameter to KernelMain
 	push %ebx
-	call boot.kernel.KernelMain
+	call github_com_driusan_kernel.KernelMain
 	# If the system has nothing more to do, put the computer into an infinite
 	# loop. To do that:
 	# 1) Disable interrupts with cli (clear interrupt enable in eflags). They
@@ -79,34 +81,13 @@ _start:
 # Set the size of the _start symbol to the current location '.' minus its start.
 # This is useful when debugging or when you implement call tracing.
 .size _start, . - _start
-
 .text
-.globl gdt_flush
-gdt_flush:
-	lgdt boot.descriptortables.GDTPtr
-	mov $0x10, %ax
-	mov %ax, %ds
-	mov %ax, %es
-	mov %ax, %fs
-	mov %ax, %gs
-	mov %ax, %ss
-	ljmp $0x08, $flush2
-flush2:
-	ret
-
-
-
-.globl idt_load
-idt_load:
-	lidt boot.descriptortables.IDTPtr
-	ret
-
-.text
-.globl boot.kernel.Halt
+.globl github_com_driusan_kernel.Halt
 .globl halt
-boot.kernel.Halt:
+github_com_driusan_kernel.Halt:
 halt:
 	cli
 	hlt
-	jmp boot.kernel.Halt
+	jmp halt
+
 

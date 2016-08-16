@@ -13,7 +13,7 @@ typedef struct {
 	uint16_t* buffer;
 } Terminal;
 
-extern Terminal *terminal __asm__("boot.kernel.Term");
+extern Terminal *terminal __asm__("github_com_driusan_kernel.Term");
  
 // This is easier to do in C than in Go, since t->buffer is a pointer, not an
 // array. This is used as a helper from the Go side.
@@ -33,8 +33,10 @@ size_t strlen(const char* str) {
 }
 
 /* TODO: Find out if the name gets mangled in a deterministic way */
-void putentryat(Terminal *t, char c, uint8_t color, int16_t x, int16_t y) __asm__("boot.kernel.PutEntryAt.pN20_boot.kernel.Terminal");
-void terminal_putchar(Terminal *t, char c) __asm__("boot.kernel.PutChar.pN20_boot.kernel.Terminal");
+// void putentryat(Terminal *t, char c, uint8_t color, int16_t x, int16_t y) __asm__("boot.kernel.PutEntryAt.pN20_boot.kernel.Terminal");
+// void terminal_putchar(Terminal *t, char c) __asm__("github_com_driusan_kernel.pN20_Terminal");
+void putentryat(Terminal *t, char c, uint8_t color, int16_t x, int16_t y) __asm__("github_com_driusan_kernel.PutEntryAt.pN34_github_com_driusan_kernel.Terminal"); 
+void terminal_putchar(Terminal *t, char c) __asm__("github_com_driusan_kernel.PutChar.pN34_github_com_driusan_kernel.Terminal") ;
 
 void putchar(char c) {
 	terminal_putchar(terminal, c);

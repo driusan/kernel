@@ -1,14 +1,14 @@
 package kernel
 
 import (
-	"acpi"
-	"asm"
-	"descriptortables"
-	"interrupts"
-	"memory"
-	"ide"
-	"pci"
-	"ps2"
+	"github.com/driusan/kernel/acpi"
+	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/descriptortables"
+	"github.com/driusan/kernel/interrupts"
+	"github.com/driusan/kernel/memory"
+	"github.com/driusan/kernel/ide"
+	"github.com/driusan/kernel/pci"
+	"github.com/driusan/kernel/input/ps2"
 )
 
 // Represents information passed along from multiboot compliant

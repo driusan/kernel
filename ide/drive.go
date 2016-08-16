@@ -1,8 +1,8 @@
 package ide
 
 import (
-	"asm"
-	"interrupts"
+	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/interrupts"
 )
 
 const (

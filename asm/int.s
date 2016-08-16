@@ -1,15 +1,15 @@
 .text
 .globl STI
-.globl boot.asm.STI
+.globl github_com_driusan_kernel_asm.STI
 STI:
-boot.asm.STI:
+github_com_driusan_kernel_asm.STI:
 	sti
 	ret
 
 .text
 .globl HLT
-.globl boot.asm.HLT
+.globl github_com_driusan_kernel_asm.HLT
 HLT:
-boot.asm.HLT:
+github_com_driusan_kernel_asm.HLT:
 	hlt
 	ret

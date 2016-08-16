@@ -14,9 +14,9 @@ void outb (unsigned short _port, unsigned char _data)
     __asm__ __volatile__ ("outb %1, %0" : : "dN" (_port), "a" (_data));
 }
 
-unsigned long inl (unsigned short _port)
+uint32_t inl(uint16_t _port)
 {
-    unsigned long rv;
+    uint32_t rv;
     __asm__ __volatile__ ("inl %1, %0" : "=a" (rv) : "dN" (_port));
     return rv;
 }
@@ -27,7 +27,7 @@ unsigned long inw (unsigned short _port)
     return rv;
 }
 
-void outl (unsigned short _port, unsigned long _data)
+void outl (uint16_t _port, uint32_t _data)
 {
     __asm__ __volatile__ ("outl %1, %0" : : "dN" (_port), "a" (_data));
 }

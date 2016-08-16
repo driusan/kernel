@@ -1,6 +1,6 @@
 package ide
 
-import "asm"
+import "github.com/driusan/kernel/asm"
 
 const (
 	PrimaryDataPort = 0x1F0 + iota

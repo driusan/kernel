@@ -1,6 +1,6 @@
 package kernel
 
-import "interrupts"
+import "github.com/driusan/kernel/interrupts"
 
 var ticks uint64
 

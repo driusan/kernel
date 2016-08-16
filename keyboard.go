@@ -1,8 +1,8 @@
 package kernel
 
 import (
-	"asm"
-	"interrupts"
+	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/interrupts"
 )
 
 func KeyboardHandler(r *interrupts.Registers) {

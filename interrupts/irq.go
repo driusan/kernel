@@ -1,6 +1,6 @@
 package interrupts
 
-import "asm"
+import "github.com/driusan/kernel/asm"
 
 // Enables interrupts
 func Enable() {

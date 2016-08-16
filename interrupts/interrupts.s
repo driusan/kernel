@@ -204,7 +204,7 @@ isr_common_stub:
 	mov %ax, %gs
 	mov %esp, %eax
 	push %eax
-	mov $boot.interrupts.CPUFaultHandler, %eax
+	mov $github_com_driusan_kernel_interrupts.CPUFaultHandler, %eax
 	call *%eax
 	pop %eax
 	pop %gs
@@ -328,7 +328,7 @@ irq_common_stub:
 	mov %esp, %eax
 
 	push %eax
-	mov $boot.interrupts.IRQHandler, %eax
+	mov $github_com_driusan_kernel_interrupts.IRQHandler, %eax
 	call *%eax
 	pop %eax
 

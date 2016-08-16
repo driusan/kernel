@@ -1,8 +1,8 @@
 package ps2
 
 import (
-	"asm"
-	"interrupts"
+	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/interrupts"
 )
 
 // the packet size of the current protocol
