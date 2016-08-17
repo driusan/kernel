@@ -45,6 +45,16 @@ __go_print_uint64:
 __go_print_pointer:
 	JMP github_com_driusan_kernel_libg.GoPrintPointer
 
+.text
+.globl __go_alloc
+__go_alloc:
+	JMP github_com_driusan_kernel_libg.GoAlloc
+
+.text
+.globl __go_free
+__go_free:
+	JMP github_com_driusan_kernel_libg.GoFree
+
 #.text
 #.globl runtime_panicstring
 #runtime_panicstring:

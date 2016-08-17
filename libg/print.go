@@ -5,7 +5,6 @@ import (
 	"github.com/driusan/kernel/terminal"
 )
 
- 
 func halt() {
 	for {
 		asm.CLI()
@@ -48,4 +47,15 @@ func GoPrintPointer(p uintptr) {
 func GoRuntimePanicString(err string) {
 	GoPrintString(err)
 	halt()
+}
+
+func GoAlloc(size uint) uintptr {
+	// This shouldn't really be here. For now it's just a stub
+	// so that it compiles.
+	return 0x0
+}
+
+func GoFree(uintptr) {
+	// This shouldn't really be here. For now it's just a stub
+	// so that it compiles.
 }
