@@ -9,8 +9,10 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/go-type-interface.o \
 	libg/go-typedesc-equal.o \
 	libg/mem.o \
+	libg/stubs.o \
 	asm/inout.o \
 	memory/cpaging.o interrupts/irq.o interrupts/isrs.o
+LIBGPKGSRC=libg/print.go
 GOSRC=kernel.go keyboard.go timer.go
 ASMPKGSRC=asm/inout.go
 PCIPKGSRC=pci/pci.go pci/class.go pci/header.go
@@ -19,6 +21,7 @@ DTABLEPKGSRC=descriptortables/gdt.go descriptortables/idt.go
 PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
 ACPIPKGSRC=acpi/find.go
 IDEPKGSRC=ide/identify.go ide/drive.go
+TERMINALPKGSRC=terminal/print.go terminal/terminal.go
 
 all: myos.bin
 
@@ -27,6 +30,12 @@ clean:
 
 interrupts.o: ${INTERRUPTSPKGSRC} interrupts/irq.o interrupts/isrs.o descriptortables.o
 	${GO} -I`go env GOPATH`/src -c interrupts/*.go -o interrupts.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/interrupts
+
+terminal.o: ${TERMINALPKGSRC} 
+	${GO} -I`go env GOPATH`/src -c terminal/*.go -o terminal.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/terminal
+
+libg.o: ${LIBGPKGSRC} terminal.o asm.o
+	${GO} -I`go env GOPATH`/src -c libg/*.go -o libg.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/libg
 
 descriptortables.o: ${DTABLEPKGSRC} descriptortables/dt.o
 	${GO} -I`go env GOPATH`/src -c descriptortables/*.go -o descriptortables.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/descriptortables
@@ -58,7 +67,7 @@ acpi.o: ${ACPIPKGSRC}
 kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o
 	${GO} -I. -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o -lgcc
 
 run: myos.bin

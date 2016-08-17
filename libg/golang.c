@@ -9,42 +9,11 @@
 #include "runtime.h"
 #include "go-type.h"
 #include "unwind.h"
-// Used for __go_print_*
-extern void terminal_writestring(const char* data);
-extern void putchar(char c);
-extern void halt(void);
 
-void printhex(int64_t i);
-void __go_print_uint64(uint64_t i);
-
-void __go_panic(void) {
-	terminal_writestring("Kernel panic. TODO: Add more debug info here.");
-	halt();
-}
-
-// Stuff that go uses that I don't understand. This should go in it's own file.
-void __go_print_string(struct String s) {
-	for(intgo i = 0; i < s.len; i++) {
-		putchar(s.str[i]); //terminal_writestring(s.str);
-
-	}
-}
-void __go_print_space(void) {
-	terminal_writestring(" ");
-}
-void __go_print_nl(void) {
-	terminal_writestring("\n");
-}
-
-void __go_print_pointer(void *p) {
-	printhex((int64_t) p);
-
-	//terminal_writestring("Pointer: ");
-	//__go_print_uint64((uint64) p);
-}
 void __go_register_gc_roots(struct root_list *roots __attribute__((unused))) { }
 
-
+// This is defined in Go because it's a C string string, and GoPrintString
+// takes a Go style string.
 void runtime_panicstring(const char* error) {
 	terminal_writestring(error);
 	// Halt only needs to be called once, but the for loop fixes a compiler
@@ -52,75 +21,10 @@ void runtime_panicstring(const char* error) {
 	for (;;) halt();
 }
 
-// This should be done in Go, but there's not enough of the go
-// runtime implemented to do it properly yet.
-void printdec(int64_t i) {
-	if(i == 0) {
-		putchar('0');
-		return;
-	}
-	// The highest int64_t is  18446744073709551616, a
-	// 			12345678901234567890
-	// 20 digit string. Since we don't have a malloc/free yet,
-	// just use a 20 character array to store the string representation.
-	// We need to do this, because the obvious algorithm counts it backwards
-	// so we need to store an intermediary and then print the reverse.
-	char c[21];
-	
-	if (i < 0) {
-		putchar('-');
-		i = -i;
-	}
-	int digit = 0;
-	while(i) {
-		c[digit++] = i % 10;
-		i = i / 10;
-	}
-
-	while(digit--) {
-		putchar(c[digit] + '0');
-	}
-	
-	
-}
-
-
-void printhex(int64_t i) {
-	terminal_writestring("0x");
-	if (i == 0) {
-		terminal_writestring("0");
-		return;
-	}
-
-
-	int foundByte = 0;	
-	for(char j = 15; j >= 0; j--) {
-		uint64_t mask = 0xF << (j*4);
-		char thebyte = (i & mask) >> (j*4);
-		if (thebyte != 0) {
-			foundByte = 1;
-		}
-		if(foundByte) {
-		if (thebyte < 10) {
-			putchar(thebyte+'0');
-		} else {
-			putchar(thebyte+('a'-10));
-		}
-		}
-	}
-
-}
 // These keywords are *not* available, because there's no malloc or free
 // defined, but they get linked to, so there needs to be a stub.
 void __go_new(void) { }
-void __go_append(void) { }
-void __go_print_int64(int64_t i) {
-	printdec(i);
-}
-void __go_print_uint64(uint64_t i) {
-	 __go_print_int64((int64_t)i);
-}
-
+//void __go_append(void) { }
 
 /*
 Lots of symbols aren't defined for this, so just register 
@@ -138,6 +42,8 @@ void __gccgo_personality_v0(void) {
 
 };// __attribute__ ((no_split_stack, flatten));
 
+// This should be done in Go, but it's not clear how to set the internals
+// of a string in Go
 String
 __go_byte_array_to_string (const void* p, intgo len)
 {

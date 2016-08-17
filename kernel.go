@@ -4,11 +4,12 @@ import (
 	"github.com/driusan/kernel/acpi"
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/descriptortables"
+	"github.com/driusan/kernel/ide"
+	"github.com/driusan/kernel/input/ps2"
 	"github.com/driusan/kernel/interrupts"
 	"github.com/driusan/kernel/memory"
-	"github.com/driusan/kernel/ide"
 	"github.com/driusan/kernel/pci"
-	"github.com/driusan/kernel/input/ps2"
+	"github.com/driusan/kernel/terminal"
 )
 
 // Represents information passed along from multiboot compliant
@@ -21,7 +22,9 @@ type BootInfo struct {
 
 func KernelMain(bi *BootInfo) {
 	// First init the video, so that we can print debug messages.
-	InitializeTerminal()
+	//term := terminal.Terminal{}
+	//terminal.Term = &term
+	terminal.InitializeTerminal()
 
 	// Initialize packages with package level variables
 	pci.InitPkg()
@@ -46,6 +49,7 @@ func KernelMain(bi *BootInfo) {
 		println(err.Error())
 		goto errExit
 	}
+
 	println("RSDT Signature:", string(rsdt.Signature[:]))
 	// TODO: Initialize multiple CPUs based on the MADT table in ACPI.
 	// There's not really much reason to do that until there's something

@@ -31,12 +31,12 @@ func PrimaryDriveHandler(r *interrupts.Registers) {
 		LastSectorRead.Data[i] = asm.INW(PrimaryDataPort)
 		/*
 
-		if LastSectorRead.Data[i] != 0 {
-			println("Word ", i, LastSectorRead.Data[i])
-		}
-			LastSectorRead[i*2] = byte((data >> 8) & 0xFF)
-			LastSectorRead[(i*2) + 1] = byte((data >> 8) & 0xFF)
-			LastSectorRead = */
+			if LastSectorRead.Data[i] != 0 {
+				println("Word ", i, LastSectorRead.Data[i])
+			}
+				LastSectorRead[i*2] = byte((data >> 8) & 0xFF)
+				LastSectorRead[(i*2) + 1] = byte((data >> 8) & 0xFF)
+				LastSectorRead = */
 	}
 
 	//print("Read data")

@@ -2,14 +2,12 @@ package pci
 
 import (
 	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/terminal"
 	//"fmt"
 )
 
 type VendorID uint16
 type DeviceID uint16
-
-//extern printhex
-func printhex(int64)
 
 type Device struct {
 	BusID    uint8
@@ -60,9 +58,9 @@ func EnumerateDevices() { //[256 * 32]Device{
 						err := (&d).Probe(f)
 						if err == nil {
 							print(i, " ")
-							printhex(int64(d.Vendor))
+							terminal.PrintHex(uint64(d.Vendor))
 							print(" ")
-							printhex(int64(d.Device))
+							terminal.PrintHex(uint64(d.Device))
 							print(" ", f, " ")
 
 							class, err = d.GetClass(f)
@@ -75,9 +73,9 @@ func EnumerateDevices() { //[256 * 32]Device{
 
 				} else {
 					print(i, " ")
-					printhex(int64(d.Vendor))
+					terminal.PrintHex(uint64(d.Vendor))
 					print(" ")
-					printhex(int64(d.Device))
+					terminal.PrintHex(uint64(d.Device))
 
 					class, err = d.GetClass(0)
 					if err == nil {
