@@ -19,7 +19,7 @@ type IDEDrive struct{
 }*/
 
 type DriveSector struct {
-	Data   [256]uint16
+	Data   [512]byte
 	Sector uint64
 }
 
@@ -27,8 +27,11 @@ var LastSectorRead DriveSector
 
 func PrimaryDriveHandler(r *interrupts.Registers) {
 	//print("Reading data")
+	var data uint16
 	for i := 0; i < 256; i++ {
-		LastSectorRead.Data[i] = asm.INW(PrimaryDataPort)
+		data = asm.INW(PrimaryDataPort)
+		LastSectorRead.Data[(2*i)+1] = byte((data >> 8) & 0xFF)
+		LastSectorRead.Data[(2*i)+0] = byte(data & 0xFF)
 		/*
 
 			if LastSectorRead.Data[i] != 0 {
@@ -53,18 +56,18 @@ func PrimaryDriveHandler(r *interrupts.Registers) {
 // for some reason this doesn't work as a method, even though it should
 // and methods work other places
 //func (d IDEDrive) ReadLBA(lba uint64) error {
-func ReadLBA(d IDEDrive, lba uint64) error {
+func ReadLBA(d IDEDrive, lba uint64) (DriveSector, error) {
 	//print("Reading LBA ", lba)
 
 	if d.Drive != PrimaryDrive {
 		print("Drive ", d.Drive)
-		return InvalidDrive
+		return DriveSector{}, InvalidDrive
 	}
 
 	if lba > uint64(d.MaxLBA28) {
 		println("Can not read sector")
 		// 48 bit not yet supported
-		return InvalidDrive
+		return DriveSector{}, InvalidDrive
 	}
 
 	// assume the master drive. TODO: Handle slave drives
@@ -76,6 +79,10 @@ func ReadLBA(d IDEDrive, lba uint64) error {
 	asm.OUTB(PrimaryCommand, ReadSectors)
 
 	LastSectorRead.Sector = lba
+	asm.HLT()
+	// TODO: Verify that it was the right type of interrupt that woke
+	// us up
+	return LastSectorRead, nil
 	//println("Leaving ReadLBA ", lba)
-	return nil
+	//return nil
 }

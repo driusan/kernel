@@ -7,6 +7,7 @@ import (
 	"github.com/driusan/kernel/ide"
 	"github.com/driusan/kernel/input/ps2"
 	"github.com/driusan/kernel/interrupts"
+	"github.com/driusan/kernel/mbr"
 	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/pci"
 	"github.com/driusan/kernel/terminal"
@@ -38,6 +39,8 @@ func KernelMain(bi *BootInfo) {
 	// goto skipping over its definition
 	var rsdt *acpi.RSDT
 	var drive ide.IDEDrive
+	var mbrdata ide.DriveSector
+	var pts *mbr.Partitions
 	if err != nil {
 		println(err.Error())
 		goto errExit
@@ -90,12 +93,16 @@ func KernelMain(bi *BootInfo) {
 	print("PCI Devices on system: \n")
 	pci.EnumerateDevices()
 
-	err = ide.ReadLBA(drive, 1)
-	err = ide.ReadLBA(drive, 0)
+	mbrdata, err = ide.ReadLBA(drive, 0)
 	if err != nil {
 		println("Drive error:", err.Error())
 	}
 
+	pts = mbr.ExtractPartitions(mbrdata.Data)
+
+	for i, p := range pts {
+		println("Partition", i, " active:", p.Active, " type", p.PartitionType, " LBA", p.LBAStart, " Size", p.LBASize)
+	}
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.
 	for {

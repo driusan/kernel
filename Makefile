@@ -22,6 +22,7 @@ PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
 ACPIPKGSRC=acpi/find.go
 IDEPKGSRC=ide/identify.go ide/drive.go
 TERMINALPKGSRC=terminal/print.go terminal/terminal.go
+MBRPKGSRC=mbr/mbr.go
 
 all: myos.bin
 
@@ -33,6 +34,9 @@ interrupts.o: ${INTERRUPTSPKGSRC} interrupts/irq.o interrupts/isrs.o descriptort
 
 terminal.o: ${TERMINALPKGSRC} 
 	${GO} -I`go env GOPATH`/src -c terminal/*.go -o terminal.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/terminal
+
+mbr.o: ${MBRPKGSRC} 
+	${GO} -I`go env GOPATH`/src -c mbr/*.go -o mbr.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/mbr
 
 libg.o: ${LIBGPKGSRC} terminal.o asm.o
 	${GO} -I`go env GOPATH`/src -c libg/*.go -o libg.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/libg
@@ -46,7 +50,7 @@ asm.o: ${ASMPKGSRC} asm/inout.o asm/int.o
 ide.o: ${IDEPKGSRC} asm.o
 	${GO} -I`go env GOPATH`/src -c ide/*.go -o ide.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/ide
 
-pci.o: ${PCIPKGSRC}
+pci.o: ${PCIPKGSRC} terminal.o
 	${GO} -I`go env GOPATH`/src -c pci/*.go -o pci.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/pci
 
 memory.o: ${MEMPKGSRC} memory/cpaging.o
@@ -64,10 +68,10 @@ acpi.o: ${ACPIPKGSRC}
 %.o: %.c  
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
-kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o
+kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o terminal.o mbr.o
 	${GO} -I. -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o -lgcc
 
 run: myos.bin
