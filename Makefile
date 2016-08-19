@@ -25,6 +25,7 @@ PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
 ACPIPKGSRC=acpi/find.go
 IDEPKGSRC=ide/identify.go ide/drive.go
 TERMINALPKGSRC=terminal/print.go terminal/terminal.go
+MEMPKGSRC=memory/doc.go
 MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/types.go process/new.go
 FILESYSTEMPKGSRC=filesystem/interface.go filesystem/console.go

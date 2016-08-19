@@ -23,45 +23,39 @@ type BootInfo struct {
 	MemLower,
 	MemUpper uint32
 	BootDevice uint32
-	Cmdline uint32
-	ModsCount uint32
-	ModsAddr uint32
-	ElfSec ElfSectionHeaderTable
+	Cmdline    uint32
+	ModsCount  uint32
+	ModsAddr   uint32
+	ElfSec     ElfSectionHeaderTable
 	MMapLength uint32
-	MMapAddr uint32
+	MMapAddr   uint32
 }
 
-type ElfSectionHeaderTable struct{
-	num uint32
-	size uint32
-	addr uint32
+type ElfSectionHeaderTable struct {
+	num   uint32
+	size  uint32
+	addr  uint32
 	shndx uint32
 }
 
-type MultibootMemoryMap struct{
-	Size uint32
-	BaseAddr uint64
-	Length uint64
-	Memtype uint32
-}
 func KernelMain(bi *BootInfo) {
 	// First init the video, so that we can print debug messages.
 	//term := terminal.Terminal{}
 	//terminal.Term = &term
 	terminal.InitializeTerminal()
-	var mmap *MultibootMemoryMap
+	var mmap *memory.MultibootMemoryMap
 
 	i := 0
 	for offset := uintptr(0); offset < uintptr(bi.MMapLength); {
-		mmap = (*MultibootMemoryMap)(unsafe.Pointer(uintptr(bi.MMapAddr) + offset) )
+		mmap = (*memory.MultibootMemoryMap)(unsafe.Pointer(uintptr(bi.MMapAddr) + offset))
 		i++
 		if mmap.Memtype == 1 {
-			println(mmap.Length, " of available RAM at ", mmap.BaseAddr, "(Size:" , mmap.Size, ")")
+			println(mmap.Length, " of available RAM at ", mmap.BaseAddr, "(Size:", mmap.Size, ")")
 		} else {
 			//println(mmap.Length, " memory of type", mmap.Memtype, " at ", mmap.BaseAddr, "(Size:", mmap.Size, ")")
 		}
 
-		offset += unsafe.Sizeof(*MultibootMemoryMap)
+		offset += unsafe.Sizeof(*memory.MultibootMemoryMap)
 		offset += uintptr(mmap.Size)
 	}
 
