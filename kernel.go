@@ -12,8 +12,8 @@ import (
 	"github.com/driusan/kernel/mbr"
 	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/pci"
-	"github.com/driusan/kernel/terminal"
 	"github.com/driusan/kernel/shell"
+	"github.com/driusan/kernel/terminal"
 )
 
 // Represents information passed along from multiboot compliant

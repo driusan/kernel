@@ -7,7 +7,7 @@ import (
 
 func Run() {
 	namespace := process.NewNamespace()
-	
+
 	print(namespace.Test())
 	println("Entering the shell.")
 	for {
