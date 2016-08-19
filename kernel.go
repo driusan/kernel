@@ -100,6 +100,7 @@ func KernelMain(bi *BootInfo) {
 
 	ps2.EnableMouse()
 	memory.InitializePaging()
+
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
 	descriptortables.IDTInstall()
