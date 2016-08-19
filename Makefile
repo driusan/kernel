@@ -14,6 +14,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/mem.o \
 	libg/stubs.o \
 	asm/inout.o \
+	terminal/buffer.o \
 	memory/cpaging.o interrupts/irq.o interrupts/isrs.o
 LIBGPKGSRC=libg/print.go
 GOSRC=kernel.go keyboard.go timer.go
@@ -30,11 +31,15 @@ MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/types.go process/new.go
 FILESYSTEMPKGSRC=filesystem/interface.go filesystem/console.go
 SHELLPKGSRC=shell/shell.go
+CPKGSRC=C/doc.go
 
 all: myos.bin
 
 clean:
 	rm -f *.o myos.bin libg/*.o asm/*.o pci/*.o interrupts/*.o ide/*.o	
+
+C.o: ${CPKGSRC}
+	${GO} -I`go env GOPATH`/src -c C/*.go -o C.o -Wall -Wextra -fgo-pkgpath=C
 
 interrupts.o: ${INTERRUPTSPKGSRC} interrupts/irq.o interrupts/isrs.o descriptortables.o
 	${GO} -I`go env GOPATH`/src -c interrupts/*.go -o interrupts.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/interrupts
@@ -60,7 +65,7 @@ ide.o: ${IDEPKGSRC} asm.o
 pci.o: ${PCIPKGSRC} terminal.o
 	${GO} -I`go env GOPATH`/src -c pci/*.go -o pci.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/pci
 
-memory.o: ${MEMPKGSRC} memory/cpaging.o
+memory.o: ${MEMPKGSRC} memory/cpaging.o C.o
 	${GO} -I`go env GOPATH`/src -c ${MEMPKGSRC} -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
 
 input/ps2.o: ${PS2PKGSRC}
@@ -85,7 +90,7 @@ kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
 myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o -lgcc
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o -lgcc
 
 run: myos.bin
 	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error

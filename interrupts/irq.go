@@ -1,6 +1,13 @@
 package interrupts
 
-import "github.com/driusan/kernel/asm"
+// typedef struct{} Nothing;
+import "C"
+
+import (
+	"github.com/driusan/kernel/asm"
+)
+
+type cNothing C.Nothing
 
 // Enables interrupts
 func Enable() {

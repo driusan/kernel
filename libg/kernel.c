@@ -15,16 +15,6 @@ typedef struct {
 
 extern Terminal *terminal __asm__("github_com_driusan_kernel.Term");
  
-// This is easier to do in C than in Go, since t->buffer is a pointer, not an
-// array. This is used as a helper from the Go side.
-void setbuffer(Terminal *t, uint16_t idx, uint16_t val) {
-	t->buffer[idx] = val;
-} 
-
-uint16_t getbuffer(Terminal *t, uint16_t idx) {
-	return t->buffer[idx];
-} 
-
 size_t strlen(const char* str) {
 	size_t len = 0;
 	while (str[len])

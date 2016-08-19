@@ -1,6 +1,8 @@
 package libg
 
 import (
+	_ "C"
+
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/terminal"
 )

@@ -1,10 +1,21 @@
 package memory
 
+// typedef struct{} Nothing;
+import "C"
+
 import (
 	"unsafe"
 	//"github.com/driusan/kernel/asm"
 	//"github.com/driusan/kernel/terminal"
 )
+
+// If we import C, the GCCGO cross-compiler claims we're not using it.
+// If we import it as _ "C", go test claims we can't rename it since it's
+// the real go tool chain.
+// This is a hack so that gmake, go test ./... and go fmt ./...
+// all work. C.Nothing is a struct{}, so hopefully this gets
+// optimized away by the compiler.
+type cNoop C.Nothing
 
 const (
 	PagePresent = 1 << iota

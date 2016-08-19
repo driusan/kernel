@@ -6,7 +6,7 @@ func isrsInstallC()
 func ISRSInstall() {
 	// for some reason the extern symbol doesn't get linked if this function
 	// is empty, so just make a stub that calls the extern
-	isrsInstallC()	
+	isrsInstallC()
 }
 
 // Stores the state of CPU registers

@@ -1,8 +1,20 @@
 package terminal
 
-// TODO: Port this to another package, and add vesa support and support for
-// more than just printing text.
-import "unsafe"
+import "C"
+
+import (
+	"unsafe"
+)
+
+// If we import C, the GCCGO cross-compiler claims we're not using it.
+// If we import it as _ "C", go test claims we can't rename it since it's
+// the real go tool chain.
+// This is a hack so that gmake, go test ./... and go fmt ./...
+// all work. C.Nothing is a struct{}, so hopefully this gets
+// optimized away by the compiler.
+type cNoop C.Nothing
+
+// TODO: Add vesa support and support for more than just printing text.
 
 const (
 	VGA_WIDTH  = 80
