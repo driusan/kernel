@@ -8,6 +8,9 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/go-type-interface.o \
 	libg/go-typedesc-equal.o \
+	libg/go-new-map.o \
+	libg/go-map-index.o \
+	libg/go-assert.o \
 	libg/mem.o \
 	libg/stubs.o \
 	asm/inout.o \
@@ -23,6 +26,9 @@ ACPIPKGSRC=acpi/find.go
 IDEPKGSRC=ide/identify.go ide/drive.go
 TERMINALPKGSRC=terminal/print.go terminal/terminal.go
 MBRPKGSRC=mbr/mbr.go
+PROCESSPKGSRC=process/types.go process/new.go
+FILESYSTEMPKGSRC=filesystem/interface.go filesystem/console.go
+SHELLPKGSRC=shell/shell.go
 
 all: myos.bin
 
@@ -61,6 +67,12 @@ input/ps2.o: ${PS2PKGSRC}
 
 acpi.o: ${ACPIPKGSRC}
 	${GO} -I`go env GOPATH`/src -c acpi/*.go -o acpi.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/acpi
+process.o: ${PROCESSPKGSRC} filesystem.o
+	${GO} -I`go env GOPATH`/src -c process/*.go -o process.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/process
+filesystem.o: ${FILESYSTEMPKGSRC}
+	${GO} -I`go env GOPATH`/src -c filesystem/*.go -o filesystem.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/filesystem
+shell.o: ${SHELLPKGSRC} process.o
+	${GO} -I`go env GOPATH`/src -c shell/*.go -o shell.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/shell
 
 %.o: %.s
 	${AS} $< -o $@
@@ -68,10 +80,10 @@ acpi.o: ${ACPIPKGSRC}
 %.o: %.c  
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
-kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o terminal.o mbr.o
-	${GO} -I. -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
+kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o terminal.o mbr.o shell.o
+	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o -lgcc
 
 run: myos.bin
