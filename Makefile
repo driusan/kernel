@@ -25,7 +25,7 @@ PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
 ACPIPKGSRC=acpi/find.go
 IDEPKGSRC=ide/identify.go ide/drive.go
 TERMINALPKGSRC=terminal/print.go terminal/terminal.go
-MEMPKGSRC=memory/doc.go
+MEMPKGSRC=memory/paging.go memory/malloc.go
 MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/types.go process/new.go
 FILESYSTEMPKGSRC=filesystem/interface.go filesystem/console.go
@@ -61,7 +61,7 @@ pci.o: ${PCIPKGSRC} terminal.o
 	${GO} -I`go env GOPATH`/src -c pci/*.go -o pci.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/pci
 
 memory.o: ${MEMPKGSRC} memory/cpaging.o
-	${GO} -I`go env GOPATH`/src -c memory/*.go -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
+	${GO} -I`go env GOPATH`/src -c ${MEMPKGSRC} -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
 
 input/ps2.o: ${PS2PKGSRC}
 	${GO} -I`go env GOPATH`/src -c input/ps2/*.go -o input/ps2.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/input/ps2
@@ -89,5 +89,5 @@ myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables
 
 run: myos.bin
 	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error
-	qemu-system-x86_64 -m 4G -show-cursor -hda test.img -kernel myos.bin -no-reboot
+	qemu-system-x86_64 -m 4G -show-cursor -hda test.img -d int -kernel myos.bin -no-reboot
 

@@ -1,8 +1,6 @@
 package kernel
 
 import (
-	"unsafe"
-
 	"github.com/driusan/kernel/acpi"
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/descriptortables"
@@ -43,21 +41,6 @@ func KernelMain(bi *BootInfo) {
 	//term := terminal.Terminal{}
 	//terminal.Term = &term
 	terminal.InitializeTerminal()
-	var mmap *memory.MultibootMemoryMap
-
-	i := 0
-	for offset := uintptr(0); offset < uintptr(bi.MMapLength); {
-		mmap = (*memory.MultibootMemoryMap)(unsafe.Pointer(uintptr(bi.MMapAddr) + offset))
-		i++
-		if mmap.Memtype == 1 {
-			println(mmap.Length, " of available RAM at ", mmap.BaseAddr, "(Size:", mmap.Size, ")")
-		} else {
-			//println(mmap.Length, " memory of type", mmap.Memtype, " at ", mmap.BaseAddr, "(Size:", mmap.Size, ")")
-		}
-
-		offset += unsafe.Sizeof(*memory.MultibootMemoryMap)
-		offset += uintptr(mmap.Size)
-	}
 
 	// Initialize packages with package level variables
 	pci.InitPkg()
@@ -99,7 +82,8 @@ func KernelMain(bi *BootInfo) {
 	}
 
 	ps2.EnableMouse()
-	memory.InitializePaging()
+
+	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
 
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
@@ -123,8 +107,8 @@ func KernelMain(bi *BootInfo) {
 	print(bi.MemLower, "kb of memory in lower memory.\n")
 	print(bi.MemUpper, "kb of memory in upper memory.\n")
 	print("Total ", (bi.MemLower+bi.MemUpper)/1024, "mb of memory.\n")
-	println("Flags", bi.Flags)
-	println("MMap Length", bi.MMapLength, " MMap Addr", bi.MMapAddr)
+	//println("Flags", bi.Flags)
+	//println("MMap Length", bi.MMapLength, " MMap Addr", bi.MMapAddr)
 	//print(mmap.Memtype)
 	print("PCI Devices on system: \n")
 	pci.EnumerateDevices()
