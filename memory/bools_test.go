@@ -12,6 +12,16 @@ func TestEightBools(t *testing.T) {
 			t.Errorf("Bit %d is not false upon initialization", i)
 		}
 	}
+
+	b.Set(0, true)
+	if val := byte(b); val != 0x01 {
+		t.Errorf("Got %v expected 0x01", val)
+	}
+	b.Set(0, false)
+	if val := byte(b); val != 0x00 {
+		t.Errorf("Got %v expected 0x0", val)
+	}
+
 	b.Set(3, true)
 	if val := byte(b); val != 0x08 {
 		t.Errorf("Got %v expected 0x08", val)
@@ -45,6 +55,11 @@ func TestEightBools(t *testing.T) {
 	if val := byte(b); val != 0xF7 {
 		t.Errorf("Got %x expected 0xF7", val)
 	}
+	b.Set(3, false)
+	if val := byte(b); val != 0xF7 {
+		t.Errorf("Got %x expected 0xF7", val)
+	}
+
 	b.Set(0, false)
 	if val := byte(b); val != 0xF6 {
 		t.Errorf("Got %x expected 0xF6", val)

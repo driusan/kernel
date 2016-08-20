@@ -12,6 +12,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/go-map-index.o \
 	libg/go-assert.o \
 	libg/mem.o \
+	libg/map.o \
 	libg/stubs.o \
 	asm/inout.o \
 	terminal/buffer.o \
@@ -56,7 +57,7 @@ libg.o: ${LIBGPKGSRC} terminal.o asm.o
 descriptortables.o: ${DTABLEPKGSRC} descriptortables/dt.o
 	${GO} -I`go env GOPATH`/src -c descriptortables/*.go -o descriptortables.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/descriptortables
 
-asm.o: ${ASMPKGSRC} asm/inout.o asm/int.o
+asm.o: ${ASMPKGSRC} asm/inout.o asm/int.o C.o
 	${GO} -I`go env GOPATH`/src -c asm/*.go -o asm.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/asm
 
 ide.o: ${IDEPKGSRC} asm.o
@@ -82,6 +83,8 @@ shell.o: ${SHELLPKGSRC} process.o
 
 %.o: %.s
 	${AS} $< -o $@
+%.o: %.goc
+	${GO} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
 %.o: %.c  
 	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
@@ -94,5 +97,5 @@ myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables
 
 run: myos.bin
 	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error
-	qemu-system-x86_64 -m 4G -show-cursor -hda test.img -d int -kernel myos.bin -no-reboot
+	qemu-system-x86_64 -m 4G -show-cursor -hda test.img -kernel myos.bin -no-reboot
 

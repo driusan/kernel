@@ -4,6 +4,7 @@ import (
 	_ "C"
 
 	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/terminal"
 )
 
@@ -51,12 +52,24 @@ func GoRuntimePanicString(err string) {
 	halt()
 }
 
+func GoPrintBool(val bool) {
+	if val {
+		GoPrintString("true")
+	} else {
+		GoPrintString("false")
+	}
+}
+
 func GoAlloc(size uint) uintptr {
 	// This shouldn't really be here. For now it's just a stub
 	// so that it compiles.
-	return 0x0
+	ptr, err := memory.Malloc(size)
+	if err != nil {
+		return 0
+	}
+	print("Returning ", ptr)
+	return ptr
 }
-
 func GoFree(uintptr) {
 	// This shouldn't really be here. For now it's just a stub
 	// so that it compiles.

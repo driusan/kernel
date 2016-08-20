@@ -10,7 +10,7 @@ import (
 	"github.com/driusan/kernel/mbr"
 	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/pci"
-	"github.com/driusan/kernel/shell"
+	//"github.com/driusan/kernel/shell"
 	"github.com/driusan/kernel/terminal"
 )
 
@@ -44,6 +44,7 @@ func KernelMain(bi *BootInfo) {
 
 	// Initialize packages with package level variables
 	pci.InitPkg()
+	memory.InitPkg()
 	acpi.InitPkg()
 	ide.InitPkg()
 	ps2.InitPkg()
@@ -124,7 +125,7 @@ func KernelMain(bi *BootInfo) {
 		println("Partition", i, " active:", p.Active, " type", p.PartitionType, " LBA", p.LBAStart, " Size", p.LBASize)
 	}
 
-	shell.Run()
+	//shell.Run()
 
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.

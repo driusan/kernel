@@ -55,9 +55,25 @@ __go_alloc:
 __go_free:
 	JMP github_com_driusan_kernel_libg.GoFree
 
+.text
+.globl __go_print_bool
+__go_print_bool:
+	JMP github_com_driusan_kernel_libg.GoPrintBool
+
 #.text
 #.globl runtime_panicstring
 #runtime_panicstring:
 #	JMP github_com_driusan_kernel_libg.GoRuntimePanicString
+
+# This is used internal by the Go runtime, to resolve
+# if x, ok :=  map[idx]; ok { .. } type statements
+# It's assumed as part of runtime, but we don't have the runtime available
+# need to figure out how to compile .goc files with gccgo before we can
+# use the version from gccgo frontend..
+.text
+.globl runtime.mapaccess2
+runtime.mapaccess2:
+	JMP mapaccess2
+	#github_com_driusan_kernel_libg.mapaccess2
 
 

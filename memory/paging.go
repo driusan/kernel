@@ -121,22 +121,24 @@ func InitializePaging(MMapAddr, MMapLength uintptr) {
 			}
 		} else {
 			// Reserved memory.
-			//println(mmap.Length, " memory of type", mmap.Memtype, " at ", mmap.BaseAddr, "(Size:", mmap.Size, ")")
+			// println(mmap.Length, " memory of type", mmap.Memtype, " at ", mmap.BaseAddr, "(Size:", mmap.Size, ")")
 		}
 
-		offset += unsafe.Sizeof(*MultibootMemoryMap)
+		offset += unsafe.Sizeof(mmap) // *MultibootMemoryMap)
 		offset += uintptr(mmap.Size)
 	}
 	loadPageDirectory(pd)
 	enablePaging()
 
-	// Assume the whole kernel is in the first 3 pages (12MB) and mark
+	// Assume the whole kernel is in the first 3 page tables (12MB) and mark
 	// it as allocated for Malloc.
 	// (One page for the page table, one page for the kernel code, and
 	// one page for good measure.)
 	// TODO: Make this smarter.
-	pagesAllocated.Set(0, true)
-	pagesAllocated.Set(1, true)
-	pagesAllocated.Set(2, true)
+	for i := 0; i < 3*1024; i++ {
+		(&pagesAllocated).Set(PageNumber(i), true)
 
+	}
+
+	afterPagingInit()
 }
