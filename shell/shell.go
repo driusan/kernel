@@ -2,15 +2,22 @@ package shell
 
 import (
 	"github.com/driusan/kernel/asm"
-	"github.com/driusan/kernel/process"
+	//"github.com/driusan/kernel/process"
 )
 
 func Run() {
-	namespace := process.NewNamespace()
+	//ns := process.NewNamespace()
 
-	print(namespace.Test())
+	//_, err := ns.Open("/dev/cons")
+	//if err != nil {
+	//	println(err.Error())
+	//	return
+	//}
+	//prompt := []byte{ '>', ' '}
 	println("Entering the shell.")
 	for {
+		//cons.Write(prompt)
+
 		asm.HLT()
 	}
 	println("Leaving the shell.")

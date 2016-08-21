@@ -56,9 +56,24 @@ __go_free:
 	JMP github_com_driusan_kernel_libg.GoFree
 
 .text
+.globl malloc
+malloc:
+	JMP github_com_driusan_kernel_libg.GoAlloc
+
+.text
+.globl free
+free:
+	JMP github_com_driusan_kernel_libg.GoFree
+
+.text
 .globl __go_print_bool
 __go_print_bool:
 	JMP github_com_driusan_kernel_libg.GoPrintBool
+
+.text
+.globl pagingInitialized
+pagingInitialized:
+	JMP github_com_driusan_kernel_memory.IsPagingInitialized
 
 #.text
 #.globl runtime_panicstring
@@ -74,6 +89,18 @@ __go_print_bool:
 .globl runtime.mapaccess2
 runtime.mapaccess2:
 	JMP mapaccess2
-	#github_com_driusan_kernel_libg.mapaccess2
 
+# Similarly used by for x, y := range map
+.text
+.globl runtime.mapiterinit
+runtime.mapiterinit:
+	JMP __go_mapiterinit
+.text
+.globl runtime.mapiter2
+runtime.mapiter2:
+	JMP __go_mapiter2
+.text
+.globl runtime.mapiternext
+runtime.mapiternext:
+	JMP __go_mapiternext
 

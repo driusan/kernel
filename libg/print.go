@@ -67,7 +67,6 @@ func GoAlloc(size uint) uintptr {
 	if err != nil {
 		return 0
 	}
-	print("Returning ", ptr)
 	return ptr
 }
 func GoFree(uintptr) {

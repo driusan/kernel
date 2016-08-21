@@ -8,11 +8,16 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/go-type-interface.o \
 	libg/go-typedesc-equal.o \
+	libg/go-append.o \
 	libg/go-new-map.o \
 	libg/go-map-index.o \
+	libg/go-map-range.o \
 	libg/go-assert.o \
+	libg/gomallocstub.o \
 	libg/mem.o \
 	libg/map.o \
+	libg/msize.o \
+	libg/go-interface-compare.o \
 	libg/stubs.o \
 	asm/inout.o \
 	terminal/buffer.o \
@@ -30,7 +35,7 @@ TERMINALPKGSRC=terminal/print.go terminal/terminal.go
 MEMPKGSRC=memory/paging.go memory/malloc.go
 MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/types.go process/new.go
-FILESYSTEMPKGSRC=filesystem/interface.go filesystem/console.go
+FILESYSTEMPKGSRC=filesystem/interface.go filesystem/devfs.go
 SHELLPKGSRC=shell/shell.go
 CPKGSRC=C/doc.go
 
@@ -41,6 +46,12 @@ clean:
 
 C.o: ${CPKGSRC}
 	${GO} -I`go env GOPATH`/src -c C/*.go -o C.o -Wall -Wextra -fgo-pkgpath=C
+
+errors.o:
+	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/errors/errors.go -o errors.o -Wall -Wextra -fgo-pkgpath=errors
+
+#io.o: errors.o
+#	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/io/io.go -o io.o -Wall -Wextra -fgo-pkgpath=io
 
 interrupts.o: ${INTERRUPTSPKGSRC} interrupts/irq.o interrupts/isrs.o descriptortables.o
 	${GO} -I`go env GOPATH`/src -c interrupts/*.go -o interrupts.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/interrupts
@@ -69,7 +80,7 @@ pci.o: ${PCIPKGSRC} terminal.o
 memory.o: ${MEMPKGSRC} memory/cpaging.o C.o
 	${GO} -I`go env GOPATH`/src -c ${MEMPKGSRC} -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
 
-input/ps2.o: ${PS2PKGSRC}
+input/ps2.o: ${PS2PKGSRC} filesystem.o
 	${GO} -I`go env GOPATH`/src -c input/ps2/*.go -o input/ps2.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/input/ps2
 
 acpi.o: ${ACPIPKGSRC}

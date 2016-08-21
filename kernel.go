@@ -10,7 +10,7 @@ import (
 	"github.com/driusan/kernel/mbr"
 	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/pci"
-	//"github.com/driusan/kernel/shell"
+	"github.com/driusan/kernel/shell"
 	"github.com/driusan/kernel/terminal"
 )
 
@@ -43,21 +43,15 @@ func KernelMain(bi *BootInfo) {
 	terminal.InitializeTerminal()
 
 	// Initialize packages with package level variables
-	pci.InitPkg()
-	memory.InitPkg()
 	acpi.InitPkg()
-	ide.InitPkg()
-	ps2.InitPkg()
-
-	ptr, err := acpi.FindRSDP()
-
 	// if we don't declare this ahead of time gccgo complains about
 	// goto skipping over its definition
 	var rsdt *acpi.RSDT
 	var drive ide.IDEDrive
 	var mbrdata ide.DriveSector
 	var pts *mbr.Partitions
-
+	var err error
+	ptr, err := acpi.FindRSDP()
 	if err != nil {
 		println(err.Error())
 		goto errExit
@@ -75,6 +69,11 @@ func KernelMain(bi *BootInfo) {
 	// There's not really much reason to do that until there's something
 	// for the CPUs to do, though.
 	// Should also probably try and enter long mode here.
+	//memory.InitPkg()
+	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
+	pci.InitPkg()
+	ps2.InitPkg()
+	ide.InitPkg()
 
 	// Identify the by polling drive before interrupts are enabled.
 	drive, err = ide.IdentifyDrive(ide.PrimaryDrive)
@@ -83,8 +82,6 @@ func KernelMain(bi *BootInfo) {
 	}
 
 	ps2.EnableMouse()
-
-	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
 
 	// Set up the GDT and interrupt handlers
 	descriptortables.GDTInstall()
@@ -125,7 +122,7 @@ func KernelMain(bi *BootInfo) {
 		println("Partition", i, " active:", p.Active, " type", p.PartitionType, " LBA", p.LBAStart, " Size", p.LBASize)
 	}
 
-	//shell.Run()
+	shell.Run()
 
 	// Just sit around waiting for an interrupt now that everything
 	// is enabled.

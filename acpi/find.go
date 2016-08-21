@@ -9,9 +9,12 @@ type ACPIError string
 func (e ACPIError) Error() string {
 	return string(e)
 }
+
+// FIXME: This calls __go_new before it's available because paging
+// hasn't been initialized yet.
 func InitPkg() {
-	NoACPIFound = ACPIError("No ACPI header found")
-	InvalidChecksum = ACPIError("Invalid checksum")
+	//NoACPIFound = ACPIError("No ACPI header found")
+	//InvalidChecksum = ACPIError("Invalid checksum")
 }
 
 type RSDPtr struct {

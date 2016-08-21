@@ -9,6 +9,12 @@ import (
 	//"github.com/driusan/kernel/terminal"
 )
 
+var isInitialized bool
+
+func IsPagingInitialized() bool {
+	return isInitialized
+}
+
 // If we import C, the GCCGO cross-compiler claims we're not using it.
 // If we import it as _ "C", go test claims we can't rename it since it's
 // the real go tool chain.
@@ -129,16 +135,6 @@ func InitializePaging(MMapAddr, MMapLength uintptr) {
 	}
 	loadPageDirectory(pd)
 	enablePaging()
-
-	// Assume the whole kernel is in the first 3 page tables (12MB) and mark
-	// it as allocated for Malloc.
-	// (One page for the page table, one page for the kernel code, and
-	// one page for good measure.)
-	// TODO: Make this smarter.
-	for i := 0; i < 3*1024; i++ {
-		(&pagesAllocated).Set(PageNumber(i), true)
-
-	}
 
 	afterPagingInit()
 }

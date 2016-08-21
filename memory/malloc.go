@@ -23,16 +23,34 @@ var NoMemory error
 var largePages map[PageNumber]PageSpan
 
 func InitPkg() {
-	InvalidUsage = MemoryError("Invalid usage")
-	NoMemory = MemoryError("No memory available")
+}
+func afterPagingInit() {
+	// Initialize the allocation map.
 	for i, _ := range pagesAllocated {
 		pagesAllocated[i] = 0
 	}
-}
-func afterPagingInit() {
+
+	// Assume the whole kernel is in the first 4 page tables (16MB) and mark
+	// it as allocated for Malloc.
+	// (One page for the page table, one page for the kernel code, and
+	// one page for good measure.)
+	// TODO: Make this smarter.
+	for i := 0; i < 4*1024; i++ {
+		(&pagesAllocated).Set(PageNumber(i), true)
+
+	}
+
+	// It's now safe to call __go_new
+	isInitialized = true
+
 	// This can't be done in InitPkg because initPaging hasn't marked
 	// the appropriate places as allocated, and make() will call Malloc
 	largePages = make(map[PageNumber]PageSpan)
+
+	// These also call __go_new, so the allocation map needs to be initialized
+	InvalidUsage = MemoryError("Invalid usage")
+	NoMemory = MemoryError("No memory available")
+
 }
 
 // Stores a bit map of if physical pages are currently in use.

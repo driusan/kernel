@@ -9,8 +9,23 @@
 #include "runtime.h"
 #include "go-type.h"
 #include "unwind.h"
+#include "malloc.h"
 
 void __go_register_gc_roots(struct root_list *roots __attribute__((unused))) { }
+
+void *
+__go_new (const struct __go_type_descriptor *td, uintptr_t size)
+{
+	// This shouldn't be called before paging is initialized. If it
+	// is, just return an unused value and hope for the best
+	if (!pagingInitialized()) {
+		terminal_writestring("Warning: call to __go_new before memory is ready");
+		return 0xF000000;
+	}
+	return runtime_mallocgc (size,
+		   (uintptr) td | TypeInfo_SingleObject,
+		   td->__code & GO_NO_POINTERS ? FlagNoScan : 0);
+}
 
 // This is defined in Go because it's a C string string, and GoPrintString
 // takes a Go style string.
@@ -20,11 +35,6 @@ void runtime_panicstring(const char* error) {
 	// warning about __noreturn__ function returning.
 	for (;;) halt();
 }
-
-// These keywords are *not* available, because there's no malloc or free
-// defined, but they get linked to, so there needs to be a stub.
-void __go_new(void) { }
-//void __go_append(void) { }
 
 /*
 Lots of symbols aren't defined for this, so just register 
