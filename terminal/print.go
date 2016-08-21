@@ -1,5 +1,15 @@
 package terminal
 
+func PrintRune(r rune) {
+	if r < 256 {
+		Term.PutChar(byte(r))
+	} else {
+		Term.PutChar(3)
+	}
+	/*	switch r {
+		case
+	}*/
+}
 func PrintHex(i uint64) {
 	Term.PutChar('0')
 	Term.PutChar('x')

@@ -1,5 +1,7 @@
 package interrupts
 
+import "github.com/driusan/kernel/asm"
+
 //extern isrs_install
 func isrsInstallC()
 
@@ -71,6 +73,10 @@ func CPUFaultHandler(r *Registers) {
 	print("In system fault handler")
 	if r.InterruptNo < 32 {
 		print(r.InterruptDescription(), " Exception. System Halted!\n")
+		for {
+			asm.CLI()
+			asm.HLT()
+		}
 	} else {
 		print("Unknown CPU Fault, ", r.InterruptNo)
 		panic("CPUFaultHandler called with invalid interrupt number")

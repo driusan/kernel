@@ -12,7 +12,15 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/go-new-map.o \
 	libg/go-map-index.o \
 	libg/go-map-range.o \
+	libg/go-make-slice.o \
+	libg/go-strplus.o \
+	libg/go-type-eface.o \
 	libg/go-assert.o \
+	libg/go-rune.o \
+	libg/go-strslice.o \
+	libg/go-convert-interface.o \
+	libg/go-string-to-byte-array.o \
+	libg/stringiter.o \
 	libg/gomallocstub.o \
 	libg/mem.o \
 	libg/map.o \
@@ -34,8 +42,9 @@ IDEPKGSRC=ide/identify.go ide/drive.go
 TERMINALPKGSRC=terminal/print.go terminal/terminal.go
 MEMPKGSRC=memory/paging.go memory/malloc.go
 MBRPKGSRC=mbr/mbr.go
-PROCESSPKGSRC=process/types.go process/new.go
-FILESYSTEMPKGSRC=filesystem/interface.go filesystem/devfs.go
+PROCESSPKGSRC=process/namespace.go process/new.go process/process.go
+FILESYSTEMPKGSRC=filesystem/interface.go filesystem/devfs.go filesystem/nullfs.go \
+	filesystem/simpledirectory.go filesystem/root.go
 SHELLPKGSRC=shell/shell.go
 CPKGSRC=C/doc.go
 
@@ -46,6 +55,9 @@ clean:
 
 C.o: ${CPKGSRC}
 	${GO} -I`go env GOPATH`/src -c C/*.go -o C.o -Wall -Wextra -fgo-pkgpath=C
+
+runtime.o:
+	${GO} -I`go env GOPATH`/src -c libg/runtime/*.go -o runtime.o -Wall -Wextra -fgo-pkgpath=runtime
 
 errors.o:
 	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/errors/errors.go -o errors.o -Wall -Wextra -fgo-pkgpath=errors
@@ -62,7 +74,7 @@ terminal.o: ${TERMINALPKGSRC}
 mbr.o: ${MBRPKGSRC} 
 	${GO} -I`go env GOPATH`/src -c mbr/*.go -o mbr.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/mbr
 
-libg.o: ${LIBGPKGSRC} terminal.o asm.o
+libg.o: ${LIBGPKGSRC} terminal.o asm.o runtime.o
 	${GO} -I`go env GOPATH`/src -c libg/*.go -o libg.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/libg
 
 descriptortables.o: ${DTABLEPKGSRC} descriptortables/dt.o
@@ -87,7 +99,7 @@ acpi.o: ${ACPIPKGSRC}
 	${GO} -I`go env GOPATH`/src -c acpi/*.go -o acpi.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/acpi
 process.o: ${PROCESSPKGSRC} filesystem.o
 	${GO} -I`go env GOPATH`/src -c process/*.go -o process.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/process
-filesystem.o: ${FILESYSTEMPKGSRC}
+filesystem.o: ${FILESYSTEMPKGSRC} terminal.o libg.o
 	${GO} -I`go env GOPATH`/src -c filesystem/*.go -o filesystem.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/filesystem
 shell.o: ${SHELLPKGSRC} process.o
 	${GO} -I`go env GOPATH`/src -c shell/*.go -o shell.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/shell
@@ -98,7 +110,7 @@ shell.o: ${SHELLPKGSRC} process.o
 	${GO} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
 %.o: %.c  
-	${CC} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
+	${CC} -c $< -o $@ -std=gnu99 -fplan9-extensions -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
 kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o terminal.o mbr.o shell.o
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
@@ -108,5 +120,5 @@ myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables
 
 run: myos.bin
 	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error
-	qemu-system-x86_64 -m 4G -show-cursor -hda test.img -kernel myos.bin -no-reboot
+	qemu-system-x86_64 -m 4G -hda test.img -kernel myos.bin -no-reboot
 

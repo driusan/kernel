@@ -94,6 +94,10 @@ func Malloc(amt uint) (uintptr, error) {
 	for i := PageNumber(0); i < (4 * gB / PageSize); i++ {
 		if pagesAllocated.isPageAllocated(i) == false {
 			for j := 0; j < int(numPages); j++ {
+				if (i + PageNumber(j)) >= (4 * gB / PageSize) {
+					return 0, NoMemory
+				}
+
 				if pagesAllocated.isPageAllocated(i + PageNumber(j)) {
 					// There was an interruption in the span, so move
 					// to the next possible span

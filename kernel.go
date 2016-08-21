@@ -4,6 +4,7 @@ import (
 	"github.com/driusan/kernel/acpi"
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/descriptortables"
+	"github.com/driusan/kernel/filesystem"
 	"github.com/driusan/kernel/ide"
 	"github.com/driusan/kernel/input/ps2"
 	"github.com/driusan/kernel/interrupts"
@@ -71,10 +72,12 @@ func KernelMain(bi *BootInfo) {
 	// Should also probably try and enter long mode here.
 	//memory.InitPkg()
 	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
+	filesystem.InitPkg()
 	pci.InitPkg()
 	ps2.InitPkg()
 	ide.InitPkg()
 
+	print("Done init")
 	// Identify the by polling drive before interrupts are enabled.
 	drive, err = ide.IdentifyDrive(ide.PrimaryDrive)
 	if err != nil {

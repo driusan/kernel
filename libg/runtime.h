@@ -431,13 +431,10 @@ void __wrap_rtems_task_variable_add(void **);
 /*
  * runtime c-called (but written in Go)
  */
-/*void	runtime_printany(Eface)
-     __asm__ (GOSYM_PREFIX "runtime.Printany");
-void	runtime_newTypeAssertionError(const String*, const String*, const String*, const String*, Eface*)
-     __asm__ (GOSYM_PREFIX "runtime.NewTypeAssertionError");
-void	runtime_newErrorCString(const char*, Eface*)
-     __asm__ (GOSYM_PREFIX "runtime.NewErrorCString");
-*/
+//void	runtime_printany(Eface) __asm__ (GOSYM_PREFIX "runtime.Printany");
+void	runtime_newTypeAssertionError(const String*, const String*, const String*, const String*, Eface*) __asm__ ("runtime.NewTypeAssertionError");  
+//void	runtime_newErrorCString(const char*, Eface*) __asm__ (GOSYM_PREFIX "runtime.NewErrorCString");
+
 /*
  * wrapped for go users
  */

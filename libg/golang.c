@@ -11,6 +11,7 @@
 #include "unwind.h"
 #include "malloc.h"
 
+extern uint8_t pagingInitialized();
 void __go_register_gc_roots(struct root_list *roots __attribute__((unused))) { }
 
 void *

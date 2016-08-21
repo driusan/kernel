@@ -3,8 +3,13 @@
 // It's just a stub so that things compile
 #include <stdint.h>
 
+#include "runtime.h"
+
 void*
 runtime_mallocgc(uintptr_t size, uintptr_t typ, uint32_t flag)
 {
+	if (size == 0) {
+		return (void *)0xFF00000; //&runtime_zerobase;
+	}
 	return malloc(size);
 }

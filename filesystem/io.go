@@ -23,3 +23,11 @@ type Closer interface {
 type ByteWriter interface {
 	WriteByte(byte) error
 }
+
+type RuneWriter interface {
+	WriteRune(rune) error
+}
+
+type ByteReader interface {
+	ReadByte() (byte, error)
+}

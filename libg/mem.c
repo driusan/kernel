@@ -25,20 +25,22 @@ void* memcpy(void *dst, const void *src, size_t n) {
 
 
 void* memset(void *b, int c, size_t len) {
-	for (size_t pos = 0; pos< len; pos++) {
+	return b;
+	for (size_t pos = 0; pos < len; pos++) {
 		*(((unsigned char*)b) + pos) = *((unsigned char*)c);
-
 	}
+	return b;
 }
 
 void* memmove(void *dst, const void *src, size_t len) {
+	terminal_writestring("Memmove\n");
 	if (dst > src) {
-		for (size_t pos = len-1; pos >= 0; pos--) {
+		for (size_t pos = len-1; pos > 0; pos--) {
 		      *(((unsigned char*)dst) + pos) = *(((unsigned char*)src) + pos);
 
 		}
 	} else if (dst < src) {
-		for (size_t pos = 0; pos< len; pos++) {
+		for (size_t pos = 0; pos < len; pos++) {
 		      *(((unsigned char*)dst) + pos) = *(((unsigned char*)src) + pos);
 
 		}
@@ -46,12 +48,5 @@ void* memmove(void *dst, const void *src, size_t len) {
 	return dst;
 }
 
-/*
-void* malloc(size_t amt) {
-	return 0;
-}
-void free(void *ptr) {
-}
-*/
 void abort(void) {
 }

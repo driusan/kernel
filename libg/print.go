@@ -64,7 +64,9 @@ func GoAlloc(size uint) uintptr {
 	// This shouldn't really be here. For now it's just a stub
 	// so that it compiles.
 	ptr, err := memory.Malloc(size)
+
 	if err != nil {
+		print(err.Error())
 		return 0
 	}
 	return ptr

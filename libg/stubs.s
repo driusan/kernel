@@ -99,8 +99,20 @@ runtime.mapiterinit:
 .globl runtime.mapiter2
 runtime.mapiter2:
 	JMP __go_mapiter2
+
+.text
+.globl runtime.mapiter1
+runtime.mapiter1:
+	JMP __go_mapiter1
+
 .text
 .globl runtime.mapiternext
 runtime.mapiternext:
 	JMP __go_mapiternext
+
+.text
+.globl runtime.stringiter
+runtime.stringiter:
+	JMP stringiter
+
 
