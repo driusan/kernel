@@ -64,7 +64,6 @@ Valid commands:
     exit - quit the shell
 `))
 				case "ns":
-					// This should become a real program
 					Ns(cons, proc.Namespace)
 				case "ls":
 					err := Ls(proc, cons, args)

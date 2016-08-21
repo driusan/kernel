@@ -42,6 +42,8 @@ func EnumerateDevices() { //[256 * 32]Device{
 	var class Class
 	var err error
 
+	multipleBuses := true
+
 	for b := 0; b < 256; b++ {
 		busDevices := EnumerateBus(uint8(b))
 
@@ -86,6 +88,17 @@ func EnumerateDevices() { //[256 * 32]Device{
 				}
 
 			}
+			// TODO: Make this smarter. It should check the class
+			// to see if it's a PCI-to-PCI bridge. If we don't find
+			// any, there's no more buses to scan.
+			// BUG(driusan): This check is completely wrong and
+			// doesn't do what it should.
+			if i == 0 && b == 0 && !header.IsMultifunction() {
+				multipleBuses = false
+			}
+		}
+		if !multipleBuses {
+			break
 		}
 	}
 	//return devices
