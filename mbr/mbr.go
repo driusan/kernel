@@ -15,6 +15,22 @@ type PartitionTableEntry struct {
 	LBASize                 uint32
 }
 
+func (pte PartitionTableEntry) Type() string {
+	switch pte.PartitionType {
+	case 0:
+		return "Unused"
+	case 0x05:
+		return "Extended"
+	case 0xb:
+		return "FAT32"
+	case 0x83:
+		return "EXT2"
+	default:
+		print("Unknown", pte.PartitionType)
+		return ""
+
+	}
+}
 func ExtractPartitions(hdsector [512]byte) *Partitions {
 	return (*Partitions)(unsafe.Pointer(&hdsector[446]))
 }

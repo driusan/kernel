@@ -44,7 +44,7 @@ MEMPKGSRC=memory/paging.go memory/malloc.go
 MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/namespace.go process/new.go process/process.go
 FILESYSTEMPKGSRC=filesystem/interface.go filesystem/devfs.go filesystem/nullfs.go \
-	filesystem/simpledirectory.go filesystem/root.go
+	filesystem/simpledirectory.go filesystem/root.go filesystem/fat32.go
 SHELLPKGSRC=shell/shell.go
 CPKGSRC=C/doc.go
 

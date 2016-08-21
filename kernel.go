@@ -122,7 +122,13 @@ func KernelMain(bi *BootInfo) {
 	pts = mbr.ExtractPartitions(mbrdata.Data)
 
 	for i, p := range pts {
-		println("Partition", i, " active:", p.Active, " type", p.PartitionType, " LBA", p.LBAStart, " Size", p.LBASize)
+		println("Partition", i, " active:", p.Active, " type", p.Type(), " LBA", p.LBAStart, " Size", p.LBASize)
+		if p.Type() == "FAT32" {
+			filesystem.Fat32 = filesystem.Fat32FS{
+				LBAStart: uint64(p.LBAStart),
+				LBASize:  uint64(p.LBASize),
+			}
+		}
 	}
 
 	shell.Run()
