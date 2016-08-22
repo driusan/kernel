@@ -69,7 +69,8 @@ func (t *Terminal) PutEntryAt(c byte, color Color, x, y uint16) {
 }
 
 func (t *Terminal) PutChar(c byte) {
-	if c == '\n' {
+	switch c {
+	case '\n':
 		if t.Row < VGA_HEIGHT-1 {
 			t.Row++
 		} else {
@@ -88,35 +89,44 @@ func (t *Terminal) PutChar(c byte) {
 			}
 		}
 		t.Column = 0
-
-		return
-	}
-
-	if t.Column < VGA_WIDTH {
-		t.PutEntryAt(c, t.Color, t.Column, t.Row)
-		t.Column++
-	}
-
-	if t.Column >= VGA_WIDTH {
-		if t.Row < VGA_HEIGHT-1 {
-			t.Row++
+	case '\t':
+		spaces := 8 - (t.Column % 8)
+		t.Column += spaces
+		if t.Column >= VGA_WIDTH {
+			t.PutChar('\n')
 		} else {
-			// Scroll everything up by 1 row
-			for y := uint16(1); y <= VGA_HEIGHT; y++ {
-				for x := uint16(0); x < VGA_WIDTH; x++ {
-					idx := uint16(y*VGA_WIDTH + x)
-					val := getbuffer(t, idx)
-					setbuffer(t, idx-VGA_WIDTH, val)
-					//setbuffer(t, idx-VGA_WIDTH, MakeVgaEntry('x', COLOR_BLUE))
-				}
-			}
-			// Clear the last row.
-			for x := uint16(0); x < VGA_WIDTH; x++ {
-				t.PutEntryAt(' ', t.Color, x, VGA_HEIGHT-1)
+			for ; spaces > 0; spaces-- {
+				t.PutEntryAt(' ', t.Color, t.Column-spaces, t.Row)
 			}
 		}
-		t.Column = 0
+	default:
 
+		if t.Column < VGA_WIDTH {
+			t.PutEntryAt(c, t.Color, t.Column, t.Row)
+			t.Column++
+		}
+
+		if t.Column >= VGA_WIDTH {
+			if t.Row < VGA_HEIGHT-1 {
+				t.Row++
+			} else {
+				// Scroll everything up by 1 row
+				for y := uint16(1); y <= VGA_HEIGHT; y++ {
+					for x := uint16(0); x < VGA_WIDTH; x++ {
+						idx := uint16(y*VGA_WIDTH + x)
+						val := getbuffer(t, idx)
+						setbuffer(t, idx-VGA_WIDTH, val)
+						//setbuffer(t, idx-VGA_WIDTH, MakeVgaEntry('x', COLOR_BLUE))
+					}
+				}
+				// Clear the last row.
+				for x := uint16(0); x < VGA_WIDTH; x++ {
+					t.PutEntryAt(' ', t.Color, x, VGA_HEIGHT-1)
+				}
+			}
+			t.Column = 0
+
+		}
 	}
 }
 
