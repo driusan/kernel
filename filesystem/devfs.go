@@ -8,7 +8,6 @@ var Cons DevCons
 
 //var ConsCtl File
 var DevFS devFS
-var Root Filesystem
 
 type FilesystemError string
 
@@ -20,25 +19,6 @@ func InitPkg() {
 	Cons = DevCons{}
 	DevNull = Null{}
 	DevFS = devFS{}
-	fs, err := DevFS.Open("/")
-	if err == nil {
-		Root = RootFS{
-			SimpleDirectory{
-				name: "/",
-				files: map[string]File{
-					"dev": fs,
-				},
-			},
-		}
-	} else {
-		Root = RootFS{
-			SimpleDirectory{
-				name:  "/",
-				files: make(map[string]File),
-			},
-		}
-	}
-
 }
 
 // A consReader is something that has /dev/cons open.

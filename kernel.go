@@ -124,7 +124,7 @@ func KernelMain(bi *BootInfo) {
 	for i, p := range pts {
 		println("Partition", i, " active:", p.Active, " type", p.Type(), " LBA", p.LBAStart, " Size", p.LBASize)
 		if p.Type() == "FAT32" {
-			filesystem.Fat32 = filesystem.Fat32FS{
+			filesystem.Fat = filesystem.FatFS{
 				LBAStart: uint64(p.LBAStart),
 				LBASize:  uint64(p.LBASize),
 			}

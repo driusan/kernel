@@ -12,6 +12,7 @@ func (r RootFS) Open(p Path) (File, error) {
 		return nil, FilesystemError("No such file or directory")
 	}
 }
+
 func (r RootFS) Type() string {
 	return "Filesystem root"
 }

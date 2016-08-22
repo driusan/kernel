@@ -1,16 +1,16 @@
 package filesystem
 
 type SimpleDirectory struct {
-	name  string
-	files map[string]File
+	DirName  string
+	FilesMap map[string]File
 }
 
 func (sd SimpleDirectory) Name() string {
-	return sd.name
+	return sd.DirName
 }
 
 func (sd SimpleDirectory) Files() map[string]File {
-	return sd.files
+	return sd.FilesMap
 }
 
 func (sd SimpleDirectory) Close() error {
