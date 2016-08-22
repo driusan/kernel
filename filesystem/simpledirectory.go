@@ -2,14 +2,14 @@ package filesystem
 
 type SimpleDirectory struct {
 	name  string
-	files []File
+	files map[string]File
 }
 
 func (sd SimpleDirectory) Name() string {
 	return sd.name
 }
 
-func (sd SimpleDirectory) Files() []File {
+func (sd SimpleDirectory) Files() map[string]File {
 	return sd.files
 }
 

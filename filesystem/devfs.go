@@ -20,7 +20,25 @@ func InitPkg() {
 	Cons = DevCons{}
 	DevNull = Null{}
 	DevFS = devFS{}
-	Root = RootFS{}
+	fs, err := DevFS.Open("/")
+	if err == nil {
+		Root = RootFS{
+			SimpleDirectory{
+				name: "/",
+				files: map[string]File{
+					"dev": fs,
+				},
+			},
+		}
+	} else {
+		Root = RootFS{
+			SimpleDirectory{
+				name:  "/",
+				files: make(map[string]File),
+			},
+		}
+	}
+
 }
 
 // A consReader is something that has /dev/cons open.
@@ -101,20 +119,8 @@ func (f DevCons) AsDirectory() (Directory, error) {
 	return nil, FilesystemError("File is not a directory")
 }
 
-type devFS struct {
-	// TODO: debug why struct{} results in an index out of range error
-	// This is just a placeholder
-	stub bool
-}
+type devFS struct{}
 
-/*
-func (dfs devFS) Root() Directory {
-	return SimpleDirectory{
-		name:  "dev",
-		files: nil, //[]File{Cons, ConsCtl, DevNull},
-	}
-}
-*/
 func (dfs devFS) Open(p Path) (File, error) {
 	switch string(p) {
 	case "", "/":
@@ -135,8 +141,11 @@ func (dfs devFS) Name() string {
 	return "dev"
 }
 
-func (dfs devFS) Files() []File {
-	return []File{Cons, DevNull}
+func (dfs devFS) Files() map[string]File {
+	return map[string]File{
+		"cons": Cons,
+		"null": DevNull,
+	}
 }
 
 func (dfs devFS) Close() error {

@@ -17,6 +17,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/go-type-eface.o \
 	libg/go-assert.o \
 	libg/go-rune.o \
+	libg/go-construct-map.o \
 	libg/go-strslice.o \
 	libg/go-convert-interface.o \
 	libg/go-string-to-byte-array.o \

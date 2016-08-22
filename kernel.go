@@ -142,4 +142,5 @@ func KernelMain(bi *BootInfo) {
 	// If there's an error, this will return back to boot.s, which will
 	// disable interrupts and HLT in a loop.
 errExit:
+	println("Shutting down...")
 }

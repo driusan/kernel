@@ -30,7 +30,7 @@ type File interface {
 
 type Directory interface {
 	File
-	Files() []File
+	Files() map[string]File
 }
 type Filesystem interface {
 	// Opens a file relative to this filesystem. Open should generally not

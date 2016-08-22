@@ -111,7 +111,7 @@ exit:
 	println("Leaving the shell.")
 }
 
-func Ls(proc process.Process, cons filesystem.Writer, args string) error {
+func Ls(proc process.Process, cons filesystem.File, args string) error {
 	var dirName filesystem.Path
 	if len(args) == 0 {
 		dirName = proc.Wd
@@ -137,11 +137,13 @@ func Ls(proc process.Process, cons filesystem.Writer, args string) error {
 	}
 
 	files := dir.Files()
-	if files != nil {
-		for _, file := range files {
-			cons.Write([]byte(file.Name()))
-			cons.Write([]byte{' '})
+
+	for name, file := range files {
+		cons.Write([]byte(name))
+		if file.IsDirectory() {
+			cons.WriteRune('/')
 		}
+		cons.Write([]byte{' '})
 	}
 	return nil
 }
