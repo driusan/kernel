@@ -60,6 +60,20 @@ type pageAllocTable [(4 * gB / PageSize) / 8]eightBools
 
 var pagesAllocated pageAllocTable
 
+func MemStats() (allocated, free int64, err error) {
+	allocated = 0
+	free = 0
+	for _, eightBools := range pagesAllocated {
+		for i := uint8(0); i < 8; i++ {
+			if eightBools.Get(i) {
+				allocated++
+			} else {
+				free++
+			}
+		}
+	}
+	return allocated, free, nil
+}
 func (pat *pageAllocTable) isPageAllocated(page PageNumber) bool {
 	entry := page / 8
 	bit := uint8(page % 8)

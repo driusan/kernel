@@ -3,7 +3,9 @@ package shell
 import (
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/filesystem"
+	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/process"
+	"github.com/driusan/kernel/terminal"
 )
 
 func Run() {
@@ -60,6 +62,7 @@ Valid commands:
     ns   - display process namespace
     ls   - list files
     cd   - change current working directory
+    mem  - display memory usage
     pwd  - display current working directory
     exit - quit the shell
 `))
@@ -82,6 +85,16 @@ Valid commands:
 					} else {
 						cons.Write([]byte("No current working directory"))
 					}
+				case "mem":
+					alloc, free, err := memory.MemStats()
+					if err != nil {
+						cons.Write([]byte(err.Error()))
+					} else {
+						cons.Write([]byte("Allocated pages: "))
+						terminal.PrintDec(alloc)
+						cons.Write([]byte(" Free pages: "))
+						terminal.PrintDec(free)
+					}
 				case "exit":
 					goto exit
 				default:
@@ -97,6 +110,9 @@ Valid commands:
 			cons.WriteRune('\n')
 			cons.Write(prompt)
 		case ' ':
+			// mark the border between a command and its arguments
+			// if applicable, but otherwise treat it the same as any
+			// other character
 			if cmdEnd == 0 {
 				cmdEnd = cmdSize
 			}
