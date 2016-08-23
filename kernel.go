@@ -5,6 +5,7 @@ import (
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/descriptortables"
 	"github.com/driusan/kernel/filesystem"
+	"github.com/driusan/kernel/filesystem/fat"
 	"github.com/driusan/kernel/ide"
 	"github.com/driusan/kernel/input/ps2"
 	"github.com/driusan/kernel/interrupts"
@@ -124,9 +125,12 @@ func KernelMain(bi *BootInfo) {
 	for i, p := range pts {
 		println("Partition", i, " active:", p.Active, " type", p.Type(), " LBA", p.LBAStart, " Size", p.LBASize)
 		if p.Type() == "FAT32" {
-			filesystem.Fat = filesystem.FatFS{
+			// This really needs to be redesigned, this is just a hack
+			// to get something mounted without a mount command
+			fat.Fat = &fat.FatFS{
 				LBAStart: uint64(p.LBAStart),
 				LBASize:  uint64(p.LBASize),
+				Drive:    drive,
 			}
 		}
 	}

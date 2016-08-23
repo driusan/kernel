@@ -32,25 +32,8 @@ func PrimaryDriveHandler(r *interrupts.Registers) {
 		data = asm.INW(PrimaryDataPort)
 		LastSectorRead.Data[(2*i)+1] = byte((data >> 8) & 0xFF)
 		LastSectorRead.Data[(2*i)+0] = byte(data & 0xFF)
-		/*
-
-			if LastSectorRead.Data[i] != 0 {
-				println("Word ", i, LastSectorRead.Data[i])
-			}
-				LastSectorRead[i*2] = byte((data >> 8) & 0xFF)
-				LastSectorRead[(i*2) + 1] = byte((data >> 8) & 0xFF)
-				LastSectorRead = */
 	}
-
-	//print("Read data")
-	//print("Word 216 ", LastSectorRead.Data[216], " from ", LastSectorRead.Sector)
-	//status := asm.INB(PrimaryStatus)
 	asm.INB(PrimaryStatus)
-	//print("Waiting for drive to not be busy")
-	//for (status & busy) != 0 {
-	//	status = asm.INB(PrimaryStatus)
-	//}
-	//print("Status after interrupt ", status)
 }
 
 // for some reason this doesn't work as a method, even though it should

@@ -117,6 +117,9 @@ func (dfs devFS) Type() string {
 	return "DevFS"
 }
 
+func (dfs devFS) Initialize() error {
+	return nil
+}
 func (dfs devFS) Name() string {
 	return "dev"
 }

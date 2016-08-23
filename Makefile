@@ -8,11 +8,14 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/go-type-interface.o \
 	libg/go-typedesc-equal.o \
+	libg/go-int-to-string.o \
 	libg/go-append.o \
+	libg/go-copy.o \
 	libg/go-new-map.o \
 	libg/go-map-index.o \
 	libg/go-map-range.o \
 	libg/go-make-slice.o \
+	libg/go-memcmp.o \
 	libg/go-strplus.o \
 	libg/go-type-eface.o \
 	libg/go-assert.o \
@@ -45,8 +48,11 @@ MEMPKGSRC=memory/paging.go memory/malloc.go
 MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/namespace.go process/new.go process/process.go
 FILESYSTEMPKGSRC=filesystem/interface.go filesystem/devfs.go filesystem/nullfs.go \
-	filesystem/simpledirectory.go filesystem/root.go filesystem/fat32.go
+	filesystem/simpledirectory.go filesystem/root.go \
+	filesystem/strings.go
 SHELLPKGSRC=shell/shell.go
+FATPKGSRC=filesystem/fat/fat32.go filesystem/fat/directory.go filesystem/fat/file.go \
+	filesystem/fat/lfn.go
 CPKGSRC=C/doc.go
 
 all: myos.bin
@@ -54,18 +60,33 @@ all: myos.bin
 clean:
 	rm -f *.o myos.bin libg/*.o asm/*.o pci/*.o interrupts/*.o ide/*.o	
 
+
+## Standard Go Packages. Only just enough is compiled in that are used
+errors.o:
+	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/errors/errors.go -o errors.o -Wall -Wextra -fgo-pkgpath=errors
+
+io.o: errors.o
+	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/io/io.go -o io.o -Wall -Wextra -fgo-pkgpath=io
+
+unicode/utf8.o:
+	mkdir -p unicode
+	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/unicode/utf8/utf8.go -o unicode/utf8.o -Wall -Wextra -fgo-pkgpath=unicode/utf8
+unicode/utf16.o:
+	mkdir -p unicode
+	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/unicode/utf16/utf16.go -o unicode/utf16.o -Wall -Wextra -fgo-pkgpath=unicode/utf16
+
+unicode.o:
+	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/unicode/*.go -o unicode.o -Wall -Wextra -fgo-pkgpath=io
+
+## Stubs that are part of the kernel which pretend to be part of the standard Go library, because
+## the one in stdlib doesn't work for us
 C.o: ${CPKGSRC}
 	${GO} -I`go env GOPATH`/src -c C/*.go -o C.o -Wall -Wextra -fgo-pkgpath=C
 
 runtime.o:
 	${GO} -I`go env GOPATH`/src -c libg/runtime/*.go -o runtime.o -Wall -Wextra -fgo-pkgpath=runtime
 
-errors.o:
-	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/errors/errors.go -o errors.o -Wall -Wextra -fgo-pkgpath=errors
-
-#io.o: errors.o
-#	${GO} -I`go env GOROOT`/src -c `go env GOROOT`/src/io/io.go -o io.o -Wall -Wextra -fgo-pkgpath=io
-
+## Packages that are part of the kernel
 interrupts.o: ${INTERRUPTSPKGSRC} interrupts/irq.o interrupts/isrs.o descriptortables.o
 	${GO} -I`go env GOPATH`/src -c interrupts/*.go -o interrupts.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/interrupts
 
@@ -98,10 +119,12 @@ input/ps2.o: ${PS2PKGSRC} filesystem.o
 
 acpi.o: ${ACPIPKGSRC}
 	${GO} -I`go env GOPATH`/src -c acpi/*.go -o acpi.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/acpi
-process.o: ${PROCESSPKGSRC} filesystem.o
+process.o: ${PROCESSPKGSRC} filesystem.o filesystem/fat.o
 	${GO} -I`go env GOPATH`/src -c process/*.go -o process.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/process
 filesystem.o: ${FILESYSTEMPKGSRC} terminal.o libg.o
 	${GO} -I`go env GOPATH`/src -c filesystem/*.go -o filesystem.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/filesystem
+filesystem/fat.o: ${FATPKGSRC} filesystem.o ide.o unicode/utf16.o
+	${GO} -I`go env GOPATH`/src -c filesystem/fat/*.go -o filesystem/fat.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/filesystem/fat
 shell.o: ${SHELLPKGSRC} process.o
 	${GO} -I`go env GOPATH`/src -c shell/*.go -o shell.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/shell
 
@@ -116,8 +139,8 @@ shell.o: ${SHELLPKGSRC} process.o
 kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o terminal.o mbr.o shell.o
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
-myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o -lgcc
+myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o filesystem/fat.o
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o -lgcc
 
 run: myos.bin
 	qemu-system-x86_64 -m 4G -hda test.img -kernel myos.bin -no-reboot

@@ -103,8 +103,10 @@ func (eb *eightBools) Set(num uint8, val bool) {
 // This is a very stupid/simple malloc implementation which always allocates at
 // least one page, and keeps track of which pages allocated in a large bitmap.
 func Malloc(amt uint) (uintptr, error) {
+	if amt == 0 {
+		return 0, nil
+	}
 	var numPages PageSpan = PageSpan((amt-1)/PageSize) + 1
-
 	for i := PageNumber(0); i < (4 * gB / PageSize); i++ {
 		if pagesAllocated.isPageAllocated(i) == false {
 			for j := 0; j < int(numPages); j++ {

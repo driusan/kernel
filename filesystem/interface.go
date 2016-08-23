@@ -2,6 +2,8 @@ package filesystem
 
 type Path string
 
+const EOF = FilesystemError("End of file")
+
 func (p Path) HasPrefix(op Path) bool {
 	if len(p) < len(op) {
 		return false
@@ -23,7 +25,7 @@ type File interface {
 	ByteReader
 	ByteWriter
 	RuneWriter
-	Name() string
+	//Name() string
 	IsDirectory() bool
 	AsDirectory() (Directory, error)
 }
@@ -33,6 +35,10 @@ type Directory interface {
 	Files() map[string]File
 }
 type Filesystem interface {
+	// Should initialize any internal data structures needed by the
+	// filesystem being implemented before mounting
+	Initialize() error
+
 	// Opens a file relative to this filesystem. Open should generally not
 	// cross filesystem boundaries.
 	Open(Path) (File, error)

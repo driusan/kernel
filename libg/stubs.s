@@ -114,5 +114,9 @@ runtime.mapiternext:
 .globl runtime.stringiter
 runtime.stringiter:
 	JMP stringiter
+.text
+.globl runtime.stringiter2
+runtime.stringiter2:
+	JMP stringiter2
 
 

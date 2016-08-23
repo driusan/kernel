@@ -62,6 +62,7 @@ Valid commands:
     ns   - display process namespace
     ls   - list files
     cd   - change current working directory
+    cat file - print file to the screen
     mem  - display memory usage
     pwd  - display current working directory
     exit - quit the shell
@@ -94,6 +95,16 @@ Valid commands:
 						terminal.PrintDec(alloc)
 						cons.Write([]byte(" Free pages: "))
 						terminal.PrintDec(free)
+					}
+				case "cat":
+					infile, err := proc.Open(filesystem.Path(args))
+					if err != nil {
+						cons.Write([]byte(err.Error()))
+					} else {
+						err = Cat(infile, cons)
+						if err != nil {
+							cons.Write([]byte(err.Error()))
+						}
 					}
 				case "exit":
 					goto exit
@@ -162,6 +173,31 @@ func Ls(proc process.Process, cons filesystem.File, args string) error {
 		cons.Write([]byte{' '})
 	}
 	return nil
+}
+
+func Cat(stdin, stdout filesystem.File) error {
+	output := make([]byte, 4096)
+	for {
+		n, err := stdin.Read(output)
+		/*
+			need to implement __go_interface_value_compare for this switch to work
+			as it should. For now just use a hack of checking the Error() string
+			value after making sure err isn't nil
+		*/
+		if err == nil {
+			stdout.Write(output[0:n])
+		} else {
+			switch err.Error() { // err
+			case "End of file": //filesystem.EOF:
+				stdout.Write(output[0:n])
+				return nil
+			case "": // nil
+				stdout.Write(output[0:n])
+			default:
+				return err
+			}
+		}
+	}
 }
 
 func Ns(cons filesystem.File, ns process.Namespace) {

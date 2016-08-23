@@ -1,6 +1,9 @@
 package process
 
-import "github.com/driusan/kernel/filesystem"
+import (
+	"github.com/driusan/kernel/filesystem"
+	"github.com/driusan/kernel/filesystem/fat"
+)
 
 func NewNamespace() Namespace {
 	ns := make(Namespace)
@@ -17,11 +20,16 @@ func NewNamespace() Namespace {
 		ns["/dev"] = filesystem.DevFS
 		fsRoot.FilesMap["dev"] = fs
 	}
-	if filesystem.Fat != nil {
+
+	// This is a horrible design
+	if fat.Fat != nil {
 		fs, err = filesystem.DevFS.Open("")
 		if err == nil {
-			ns["/dos"] = filesystem.Fat
+			ns["/dos"] = fat.Fat
 			fsRoot.FilesMap["dos"] = fs
+			if err := fat.Fat.Initialize(); err != nil {
+				print(err.Error())
+			}
 		}
 	}
 	return ns

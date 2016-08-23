@@ -4,6 +4,9 @@ type RootFS struct {
 	SimpleDirectory
 }
 
+func (r RootFS) Initialize() error {
+	return nil
+}
 func (r RootFS) Open(p Path) (File, error) {
 	switch string(p) {
 	case "/", "":

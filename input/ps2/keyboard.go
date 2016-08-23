@@ -72,18 +72,31 @@ func readPS2Port() byte {
 
 }
 
+var isShifted bool
+
 func KeyboardHandler(r *interrupts.Registers) {
 	scancode := readPS2Port()
 	if scancode&0x80 != 0 {
-		//println("Released key", scancode)
 		// key has been released
-	} else {
-		char, err := keymap(scancode)
-		if err != nil {
-			println("Unknown key", scancode)
-			return
+		switch scancode {
+		case 170, 182:
+			isShifted = false
+		default:
+			// println("Released key", scancode)
+
 		}
-		filesystem.Cons.SendByte(char)
+	} else {
+		switch scancode {
+		case 42, 54:
+			isShifted = true
+		default:
+			char, err := keymap(scancode)
+			if err != nil {
+				println("Unknown key", scancode)
+				return
+			}
+			filesystem.Cons.SendByte(char)
+		}
 		//println("Pressed key")
 		// key has been pressed
 	}
@@ -124,59 +137,163 @@ func keymap(scancode byte) (byte, error) {
 	case 13:
 		return '=', nil
 	case 16:
-		return 'q', nil
+		if isShifted {
+			return 'Q', nil
+		} else {
+			return 'q', nil
+		}
 	case 17:
-		return 'w', nil
+		if isShifted {
+			return 'W', nil
+		} else {
+			return 'w', nil
+		}
 	case 18:
-		return 'e', nil
+		if isShifted {
+			return 'E', nil
+		} else {
+			return 'e', nil
+		}
 	case 19:
-		return 'r', nil
+		if isShifted {
+			return 'R', nil
+		} else {
+			return 'r', nil
+		}
 	case 20:
-		return 't', nil
+		if isShifted {
+			return 'T', nil
+		} else {
+			return 't', nil
+		}
 	case 21:
-		return 'y', nil
+		if isShifted {
+			return 'Y', nil
+		} else {
+			return 'y', nil
+		}
 	case 22:
-		return 'u', nil
+		if isShifted {
+			return 'U', nil
+		} else {
+			return 'u', nil
+		}
 	case 23:
-		return 'i', nil
+		if isShifted {
+			return 'I', nil
+		} else {
+			return 'i', nil
+		}
 	case 24:
-		return 'o', nil
+		if isShifted {
+			return 'O', nil
+		} else {
+			return 'o', nil
+		}
 	case 25:
-		return 'p', nil
+		if isShifted {
+			return 'P', nil
+		} else {
+			return 'p', nil
+		}
 	case 28:
 		return '\n', nil
 	case 30:
-		return 'a', nil
+		if isShifted {
+			return 'A', nil
+		} else {
+			return 'a', nil
+		}
 	case 31:
-		return 's', nil
+		if isShifted {
+			return 'S', nil
+		} else {
+			return 's', nil
+		}
 	case 32:
-		return 'd', nil
+		if isShifted {
+			return 'D', nil
+		} else {
+			return 'd', nil
+		}
 	case 33:
-		return 'f', nil
+		if isShifted {
+			return 'F', nil
+		} else {
+			return 'f', nil
+		}
 	case 34:
-		return 'g', nil
+		if isShifted {
+			return 'G', nil
+		} else {
+			return 'g', nil
+		}
 	case 35:
-		return 'h', nil
+		if isShifted {
+			return 'H', nil
+		} else {
+			return 'h', nil
+		}
 	case 36:
-		return 'j', nil
+		if isShifted {
+			return 'J', nil
+		} else {
+			return 'j', nil
+		}
 	case 37:
-		return 'k', nil
+		if isShifted {
+			return 'K', nil
+		} else {
+			return 'k', nil
+		}
 	case 38:
-		return 'l', nil
+		if isShifted {
+			return 'L', nil
+		} else {
+			return 'l', nil
+		}
 	case 44:
-		return 'z', nil
+		if isShifted {
+			return 'Z', nil
+		} else {
+			return 'z', nil
+		}
 	case 45:
-		return 'x', nil
+		if isShifted {
+			return 'X', nil
+		} else {
+			return 'x', nil
+		}
 	case 46:
-		return 'c', nil
+		if isShifted {
+			return 'C', nil
+		} else {
+			return 'c', nil
+		}
 	case 47:
-		return 'v', nil
+		if isShifted {
+			return 'V', nil
+		} else {
+			return 'v', nil
+		}
 	case 48:
-		return 'b', nil
+		if isShifted {
+			return 'B', nil
+		} else {
+			return 'b', nil
+		}
 	case 49:
-		return 'n', nil
+		if isShifted {
+			return 'N', nil
+		} else {
+			return 'n', nil
+		}
 	case 50:
-		return 'm', nil
+		if isShifted {
+			return 'M', nil
+		} else {
+			return 'm', nil
+		}
 	case 51:
 		return ',', nil
 	case 52:

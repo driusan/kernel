@@ -29,3 +29,29 @@ intgo stringiter(String s, int k) {
 	// multi-char rune
 	return k + charntorune(&l, s.str+k, s.len-k);
 }
+
+typedef struct{
+	intgo K;
+	int32_t V;
+} stringiter2Ret;
+stringiter2Ret stringiter2(String s, int k) {
+	stringiter2Ret r;
+	if(k >= s.len) {
+		// retk=0 is end of iteration
+		r.K = 0;
+		r.V = 0;
+		goto out;
+	}
+
+	r.V = s.str[k];
+	if(r.V < Runeself) {
+		r.K = k+1;
+		goto out;
+	}
+
+	// multi-char rune
+	r.K = k + charntorune(&r.V, s.str+k, s.len-k);
+
+out:
+	return r;
+}

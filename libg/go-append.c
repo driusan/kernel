@@ -5,7 +5,7 @@
    license that can be found in the LICENSE file.  */
 
 #include "runtime.h"
-//#include "go-panic.h"
+#include "go-panic.h"
 #include "go-type.h"
 #include "array.h"
 #include "arch.h"
