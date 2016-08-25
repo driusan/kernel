@@ -3,7 +3,7 @@ CC=/home/driusan/opt/cross/bin/i686-elf-gcc
 GO=/home/driusan/opt/cross/bin/i686-elf-gccgo
 LD=/home/driusan/opt/cross/bin/i686-elf-gcc
 
-ASMOBJS=boot.o interrupts/interrupts.o asm/int.o descriptortables/dt.o
+ASMOBJS=boot.o interrupts/interrupts.o asm/int.o descriptortables/dt.o memory/load.o
 COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.o \
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/go-type-interface.o \
@@ -120,6 +120,5 @@ myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o -lgcc
 
 run: myos.bin
-	# qemu-system-x86_64 -m 4G -kernel myos.bin -d int -no-reboot 2>error
 	qemu-system-x86_64 -m 4G -hda test.img -kernel myos.bin -no-reboot
 
