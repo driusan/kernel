@@ -2,6 +2,7 @@ package shell
 
 import (
 	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/executable"
 	"github.com/driusan/kernel/filesystem"
 	"github.com/driusan/kernel/memory"
 	"github.com/driusan/kernel/process"
@@ -68,8 +69,12 @@ Valid commands:
     exit - quit the shell
 `))
 				case "ns":
+					// This should be a separate command once forking
+					// is set up
 					Ns(cons, proc.Namespace)
 				case "ls":
+					// This should be a separate command once processes
+					// are setup
 					err := Ls(proc, cons, args)
 					if err != nil {
 						cons.Write([]byte(err.Error()))
@@ -87,6 +92,7 @@ Valid commands:
 						cons.Write([]byte("No current working directory"))
 					}
 				case "mem":
+					// This should be part of /dev, not a command
 					alloc, free, err := memory.MemStats()
 					if err != nil {
 						cons.Write([]byte(err.Error()))
@@ -97,6 +103,8 @@ Valid commands:
 						terminal.PrintDec(free)
 					}
 				case "cat":
+					// This should be a separate command once userspace
+					// processes are setup
 					infile, err := proc.Open(filesystem.Path(args))
 					if err != nil {
 						cons.Write([]byte(err.Error()))
@@ -109,11 +117,25 @@ Valid commands:
 				case "exit":
 					goto exit
 				default:
-					cons.Write([]byte("Unknown command: "))
-					cons.Write([]byte(c))
-					cons.Write([]byte(" (with arguments: \""))
-					cons.Write([]byte(args))
-					cons.Write([]byte("\")"))
+					// The indentation here is weird, the flow
+					// should be cleaned up a little. I don't like
+					// else statements.
+					file, err := proc.Open(filesystem.Path(cmd[:cmdEnd]))
+					if err != nil {
+						cons.Write([]byte("Unknown command: "))
+						cons.Write([]byte(c))
+						cons.Write([]byte(" (with arguments: \""))
+						cons.Write([]byte(args))
+						cons.Write([]byte("\")"))
+					} else {
+						err = executable.Run(file)
+						if err != nil {
+							cons.Write([]byte(err.Error()))
+						}
+						// this should be done with a defer, once enough
+						// of runtime is implemented to use defer...
+						file.Close()
+					}
 				}
 			}
 			cmdSize = 0

@@ -1,7 +1,11 @@
 package filesystem
 
-import "github.com/driusan/kernel/asm"
-import "github.com/driusan/kernel/terminal"
+import (
+	"io"
+
+	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/terminal"
+)
 
 // These should act the same as /dev/cons and /dev/consctl in Plan9.
 var Cons DevCons
@@ -25,7 +29,7 @@ func InitPkg() {
 // Bytes get writen to it.
 // TODO: Handle raw vs line mode instead of assuming raw
 type consReader struct {
-	ByteWriter
+	io.ByteWriter
 	Raw bool
 }
 
@@ -33,7 +37,7 @@ type DevCons struct {
 	openers []consReader
 }
 
-func (f *DevCons) Open(callback ByteWriter) (consReader, error) {
+func (f *DevCons) Open(callback io.ByteWriter) (consReader, error) {
 	cr := consReader{ByteWriter: callback, Raw: true}
 	f.openers = append(f.openers, cr)
 	return cr, nil

@@ -29,6 +29,9 @@ func (ns Namespace) Translate(file filesystem.Path) (filesystem.Filesystem, file
 
 // Returns a file handler as evaluated in this namespace.
 func (ns Namespace) Open(file filesystem.Path) (filesystem.File, error) {
+	if file == "" {
+		return nil, ProcessError("Invalid file")
+	}
 	if file[0] != '/' {
 		return nil, ProcessError("Relative paths not supported")
 	}
@@ -37,7 +40,6 @@ func (ns Namespace) Open(file filesystem.Path) (filesystem.File, error) {
 		return nil, err
 	}
 	return fs.Open(path)
-
 }
 
 type ProcessError string

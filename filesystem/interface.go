@@ -1,5 +1,7 @@
 package filesystem
 
+import "io"
+
 type Path string
 
 const EOF = FilesystemError("End of file")
@@ -18,12 +20,12 @@ func (p Path) HasPrefix(op Path) bool {
 }
 
 type File interface {
-	Reader
-	Writer
-	Seeker
-	Closer
-	ByteReader
-	ByteWriter
+	io.Reader
+	io.Writer
+	io.Seeker
+	io.Closer
+	io.ByteReader
+	io.ByteWriter
 	RuneWriter
 	//Name() string
 	IsDirectory() bool
@@ -45,4 +47,10 @@ type Filesystem interface {
 
 	// Returns a string identifying this filesystem handler
 	Type() string
+}
+
+// RuneWriter is strangely missing from the io package, so we just define one
+// here
+type RuneWriter interface {
+	WriteRune(r rune) error
 }

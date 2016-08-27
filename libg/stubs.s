@@ -119,4 +119,7 @@ runtime.stringiter:
 runtime.stringiter2:
 	JMP stringiter2
 
-
+.text
+.globl runtime.ifaceI2I2
+runtime.ifaceI2I2:
+	JMP ifaceI2I2

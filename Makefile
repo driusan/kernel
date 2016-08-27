@@ -11,6 +11,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/go-int-to-string.o \
 	libg/go-append.o \
 	libg/go-copy.o \
+	libg/go-iface.o \
 	libg/go-new-map.o \
 	libg/go-map-index.o \
 	libg/go-map-range.o \
@@ -54,6 +55,7 @@ SHELLPKGSRC=shell/shell.go
 FATPKGSRC=filesystem/fat/fat32.go filesystem/fat/directory.go filesystem/fat/file.go \
 	filesystem/fat/lfn.go
 CPKGSRC=C/doc.go
+EXEPKGSRC=executable/run.go
 
 all: myos.bin
 
@@ -114,6 +116,9 @@ pci.o: ${PCIPKGSRC} terminal.o
 memory.o: ${MEMPKGSRC} memory/cpaging.o C.o
 	${GO} -I`go env GOPATH`/src -c ${MEMPKGSRC} -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
 
+executable.o: ${EXEPKGSRC} io.o
+	${GO} -I`go env GOPATH`/src -c executable/*.go -o executable.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable
+
 input/ps2.o: ${PS2PKGSRC} filesystem.o
 	${GO} -I`go env GOPATH`/src -c input/ps2/*.go -o input/ps2.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/input/ps2
 
@@ -121,11 +126,11 @@ acpi.o: ${ACPIPKGSRC}
 	${GO} -I`go env GOPATH`/src -c acpi/*.go -o acpi.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/acpi
 process.o: ${PROCESSPKGSRC} filesystem.o filesystem/fat.o
 	${GO} -I`go env GOPATH`/src -c process/*.go -o process.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/process
-filesystem.o: ${FILESYSTEMPKGSRC} terminal.o libg.o
+filesystem.o: ${FILESYSTEMPKGSRC} terminal.o libg.o io.o
 	${GO} -I`go env GOPATH`/src -c filesystem/*.go -o filesystem.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/filesystem
 filesystem/fat.o: ${FATPKGSRC} filesystem.o ide.o unicode/utf16.o
 	${GO} -I`go env GOPATH`/src -c filesystem/fat/*.go -o filesystem/fat.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/filesystem/fat
-shell.o: ${SHELLPKGSRC} process.o
+shell.o: ${SHELLPKGSRC} process.o executable.o
 	${GO} -I`go env GOPATH`/src -c shell/*.go -o shell.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/shell
 
 %.o: %.s
