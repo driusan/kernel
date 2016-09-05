@@ -33,11 +33,12 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	libg/go-interface-compare.o \
 	libg/stubs.o \
 	asm/inout.o \
+	asm/call.o \
 	terminal/buffer.o \
 	memory/cpaging.o interrupts/irq.o interrupts/isrs.o
 LIBGPKGSRC=libg/print.go
 GOSRC=kernel.go keyboard.go timer.go
-ASMPKGSRC=asm/inout.go
+ASMPKGSRC=asm/inout.go asm/call.go
 PCIPKGSRC=pci/pci.go pci/class.go pci/header.go
 INTERRUPTSPKGSRC=interrupts/isrs.go interrupts/irq.go
 DTABLEPKGSRC=descriptortables/gdt.go descriptortables/idt.go
@@ -117,11 +118,11 @@ pci.o: ${PCIPKGSRC} terminal.o
 memory.o: ${MEMPKGSRC} memory/cpaging.o C.o
 	${GO} -I`go env GOPATH`/src -c ${MEMPKGSRC} -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
 
-executable.o: ${EXEPKGSRC} io.o executable/plan9.o
+executable.o: ${EXEPKGSRC} io.o
 	${GO} -I`go env GOPATH`/src -c executable/*.go -o executable.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable
 
-executable/plan9.o: ${PLAN9EXEPKGSRC}
-	${GO} -I`go env GOPATH`/src -c executable/plan9/*.go -o executable/plan9.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable/plan9
+# executable/plan9.o: ${PLAN9EXEPKGSRC}
+#	${GO} -I`go env GOPATH`/src -c executable/plan9/*.go -o executable/plan9.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable/plan9
 
 input/ps2.o: ${PS2PKGSRC} filesystem.o
 	${GO} -I`go env GOPATH`/src -c input/ps2/*.go -o input/ps2.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/input/ps2
@@ -149,7 +150,7 @@ kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
 myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o filesystem/fat.o
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o executable/*.o -lgcc
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o -lgcc
 
 run: myos.bin
 	qemu-system-x86_64 -m 4G -hda test.img -kernel myos.bin -no-reboot
