@@ -1,5 +1,7 @@
 package filesystem
 
+// DevNull represents /dev/null. Writes to it disappear, and reads
+// return EOF.
 var DevNull File
 
 type Null struct {
@@ -7,7 +9,7 @@ type Null struct {
 }
 
 func (f Null) Read(p []byte) (n int, err error) {
-	return 0, nil
+	return 0, EOF
 }
 
 func (f Null) Write(p []byte) (n int, err error) {
@@ -19,7 +21,7 @@ func (f Null) Seek(offset int64, whence int) (int64, error) {
 }
 
 func (f Null) ReadByte() (byte, error) {
-	return 0, nil
+	return 0, EOF
 }
 
 func (f Null) WriteByte(b byte) error {

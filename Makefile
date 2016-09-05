@@ -37,7 +37,7 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	terminal/buffer.o \
 	memory/cpaging.o interrupts/irq.o interrupts/isrs.o
 LIBGPKGSRC=libg/print.go
-GOSRC=kernel.go keyboard.go timer.go
+GOSRC=kernel.go timer.go
 ASMPKGSRC=asm/inout.go asm/call.go
 PCIPKGSRC=pci/pci.go pci/class.go pci/header.go
 INTERRUPTSPKGSRC=interrupts/isrs.go interrupts/irq.go

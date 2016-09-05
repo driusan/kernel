@@ -26,7 +26,7 @@
 .section .bootstrap_stack, "aw", @nobits
 stack_bottom:
 .skip 16384 # 16 KiB
-.skip 131072 # 128 KiB
+#.skip 131072 # 128 KiB
 #.skip 655360 # 640KiB oughta be enough for anyone
 stack_top:
 
@@ -52,28 +52,13 @@ _start:
 	# assembly as languages such as C cannot function without a stack.
 	mov $stack_top, %esp
 
-	# This is a good place to initialize crucial processor state before the
-	# high-level kernel is entered. It's best to minimize the early environment
-	# where crucial features are offline. Note that the processor is not fully
-	# initialized yet: Features such as floating point instructions and
-	# instruction set extensions are not initialized yet. The GDT should be
-	# loaded here. Paging should be enabled here. C++ features such as global
-	# constructors and exceptions will require runtime support to work as well.
-	# Enter the high-level kernel.
+	# TODO: Setup paging and map the kernel into a higher memory address before
+	# calling KernelMain
 
 	# Add the multiboot info onto the stack as the first parameter to KernelMain
 	push %ebx
+	push %eax
 	call github_com_driusan_kernel.KernelMain
-	# If the system has nothing more to do, put the computer into an infinite
-	# loop. To do that:
-	# 1) Disable interrupts with cli (clear interrupt enable in eflags). They
-	#    are already disabled by the bootloader, so this is not needed. Mind
-	#    that you might later enable interrupts and return from kernel_main
-	#    (which is sort of nonsensical to do).
-	# 2) Wait for the next interrupt to arrive with hlt (halt instruction).
-	#    Since they are disabled, this will lock up the computer.
-	# 3) Jump to the hlt instruction if it ever wakes up due to a
-	#    non-maskable interrupt occurring or due to system management mode.
 	cli
 1:	hlt
 	jmp 1b
@@ -82,6 +67,8 @@ _start:
 # This is useful when debugging or when you implement call tracing.
 .size _start, . - _start
 .text
+
+# Define a way for us to halt the system manually in case of a panic
 .globl github_com_driusan_kernel.Halt
 .globl halt
 github_com_driusan_kernel.Halt:

@@ -1,3 +1,4 @@
+// Package acpi handles parsing ACPI headers upon boot.
 package acpi
 
 import "unsafe"
@@ -28,7 +29,7 @@ type RSDPtr struct {
 	// serialize correctly regardless of the pointer size of the system,
 	// ie we can't be sure that the compiler won't decide that a *RSDT is
 	// a 64-bit pointer.
-	// The GetRSDT method converts the int to
+	// The GetRSDT method converts the int to a *RSDT
 	rsdtAddress uint32
 }
 
@@ -37,10 +38,14 @@ type RSDT struct {
 	Signature [4]byte
 }
 
+// Converts a 32 bit int found in the RSTP PTR header to a a pointer to
+// an RSDT of the system-applicable size.
 func (r RSDPtr) GetRSDT() (*RSDT, error) {
 	return (*RSDT)(unsafe.Pointer(uintptr(r.rsdtAddress))), nil
 }
 
+// Find RSDP searches the memory for a valid RSDP header and returns a pointer
+// to the RSDP Ptr defined by the ACPI spec.
 func FindRSDP() (*RSDPtr, error) {
 	var Desc *RSDPtr //[8]byte
 	for addr := 0xE0000; addr < 0xFFFFF; addr += 16 {

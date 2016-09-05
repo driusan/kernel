@@ -7,10 +7,12 @@ import (
 	"github.com/driusan/kernel/terminal"
 )
 
-// These should act the same as /dev/cons and /dev/consctl in Plan9.
+// These should act the same as /dev/cons and /dev/consctl in Plan9. This
+// should be moved along with devFS to a new package.
 var Cons DevCons
 
-//var ConsCtl File
+// DevFS is a pseudo-filesystem which handles access through the /dev/
+// filesystem. It shouldn't be here but should be moved to its own package.
 var DevFS devFS
 
 type FilesystemError string

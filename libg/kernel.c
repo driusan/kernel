@@ -13,8 +13,7 @@ typedef struct {
 	uint16_t* buffer;
 } Terminal;
 
-extern Terminal *terminal __asm__("github_com_driusan_kernel.Term");
- 
+extern Terminal *terminal __asm__("github_com_driusan_kernel_terminal.Term");
 size_t strlen(const char* str) {
 	size_t len = 0;
 	while (str[len])
@@ -25,8 +24,10 @@ size_t strlen(const char* str) {
 /* TODO: Find out if the name gets mangled in a deterministic way */
 // void putentryat(Terminal *t, char c, uint8_t color, int16_t x, int16_t y) __asm__("boot.kernel.PutEntryAt.pN20_boot.kernel.Terminal");
 // void terminal_putchar(Terminal *t, char c) __asm__("github_com_driusan_kernel.pN20_Terminal");
-void putentryat(Terminal *t, char c, uint8_t color, int16_t x, int16_t y) __asm__("github_com_driusan_kernel.PutEntryAt.pN34_github_com_driusan_kernel.Terminal"); 
-void terminal_putchar(Terminal *t, char c) __asm__("github_com_driusan_kernel.PutChar.pN34_github_com_driusan_kernel.Terminal") ;
+ 
+
+void putentryat(Terminal *t, char c, uint8_t color, int16_t x, int16_t y) __asm__("github_com_driusan_kernel_terminal.PutEntryAt.pN43_github_com_driusan_kernel_terminal.Terminal");;
+void terminal_putchar(Terminal *t, char c) __asm__("github_com_driusan_kernel_terminal.PutChar.pN43_github_com_driusan_kernel_terminal.Terminal");
 
 void putchar(char c) {
 	terminal_putchar(terminal, c);

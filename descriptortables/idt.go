@@ -18,6 +18,7 @@ type IDTPointer DescriptorTablePointer
 // bytes in the correct place by calling SetX receiver functions.
 type IDTEntry [8]byte
 
+// Sets the base address of this IDT Entry.
 func (i *IDTEntry) SetBase(base uint32) {
 	i[0] = byte(base & 0xFF)
 	i[1] = byte((base & 0xFF00) >> 8)
@@ -27,30 +28,33 @@ func (i *IDTEntry) SetBase(base uint32) {
 
 }
 
+// Set the flags for this IDT Entry
 func (i *IDTEntry) SetFlags(flags byte) {
 	i[5] = flags
 }
 
+// Set the selector for this IDT Entry
 func (i *IDTEntry) SetSelector(flags uint16) {
 	i[2] = byte(flags & 0xFF)
 	i[3] = byte((flags & 0xFF00) >> 8)
 }
 
-/* Declare an IDT of 256 entries. Although we will only use the
-*  first 32 entries in this tutorial, the rest exists as a bit
-*  of a trap. If any undefined IDT entry is hit, it normally
-*  will cause an "Unhandled Interrupt" exception. Any descriptor
-*  for which the 'presence' bit is cleared (0) will generate an
-*  "Unhandled Interrupt" exception */
+// Declare an IDT of 256 entries. The first 32 handle Intel CPU exceptions, the
+// next 32 handle interrupts from the PIC. The rest are currently unused, but
+// can be used for software interrupts in the future.
 var IDT [256]IDTEntry
+
+// An IDT pointer is a DescriptorTablePointer of the same format as a GDTPtr.
 var IDTPtr DescriptorTablePointer
 
-/* This exists in 'start.asm', and is used to load our IDT */
+// This is defined in asm. It calls LIDT to load our descriptor table.
+//
+// TODO: Move LIDT instruction to ASM package.
+//
 //extern idt_load
 func IDTLoad()
 
-/* Use this function to set an entry in the IDT. Alot simpler
-*  than twiddling with the GDT ;) */
+// Sets an IDT gate.
 func IDTSetGate(num byte, base uint32, selector uint16, flags byte) {
 	gate := &IDT[num]
 	gate.SetBase(base)
@@ -59,13 +63,10 @@ func IDTSetGate(num byte, base uint32, selector uint16, flags byte) {
 	gate[3] = 0
 }
 
-/* Installs the IDT */
+// Installs an empty IDT table to an area of memory to later get configured
+// by the main Kernel.
 func IDTInstall() {
-	//	terminal_writestring("In IDT Install");
-	//	__go_print_int64((sizeof (struct idt_entry) * 256) -1);
-	//	terminal_writestring(" ");
-	//	__go_print_int64(sizeof (struct idt_entry));
-	/* Sets the special IDT pointer up, just like in 'gdt.c' */
+	// Load the pointer in the format LIDT requires.
 	p := &IDTPtr
 	p.SetSize(8 /* sizeof IDTEntry */ *256 /* len(IDT) */ - 1)
 	p.SetBase(uintptr(unsafe.Pointer(&IDT)))
@@ -79,6 +80,7 @@ func IDTInstall() {
 			IDT[i][j] = 0
 		}
 	}
-	IDTLoad()
 
+	// Load the IDT.
+	IDTLoad()
 }

@@ -16,8 +16,10 @@ var curPacketIdx uint8
 // if multitouch drivers are ever added.
 var curPacket [4]byte
 
+// sendPS2AuxCmd sends a byte to the PS2 auxilliary port (which is generally
+// the mouse)
 func sendPS2AuxCmd(cmd byte) error {
-	// try to send
+	// try to send up to 4 times
 	for i := 0; i < 4; i++ {
 		waitOutput()
 		asm.OUTB(0x64, 0xD4)
@@ -26,27 +28,15 @@ func sendPS2AuxCmd(cmd byte) error {
 
 		waitInput()
 		resp := asm.INB(0x60)
-		/*
-				switch statements result in a compiler error.
-				right now. Something needs to be fixed, probably
-				related to us linking in freestanding mode.
-			switch resp {
-				case PS2Success:
-					return nil
-				case PS2Fail:
-					return SendFailure
-				case PS2Resend:
-					continue
-				default:
-					return UnknownError
-			}
-		*/
-		if resp == Success {
+		switch resp {
+		case Success:
 			return nil
-		} else if resp == Fail {
+		case Fail:
 			return SendFailure
-		} else if resp == Resend {
+		case Resend:
 			continue
+		default:
+			return UnknownError
 		}
 	}
 	return TooManyRetries
@@ -111,7 +101,8 @@ func MouseHandler(r *interrupts.Registers) {
 
 // This is a stub. It doesn't do anything exciting other than
 // print how much X and Y have changed by. We should be using
-// an interface instead.
+// an interface instead, and implement /dev/mouse similarly to
+// /dev/cons.
 func processPacket(packet [4]byte) {
 	var x, y int16
 	if packet[0]&0x10 != 0 {

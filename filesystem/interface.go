@@ -1,11 +1,18 @@
+// package filesystem represents the abstractions shared across
+// different filesystem implementations. The implementations of
+// each filesystem type should usually be in a separate package
+// for that filesystem.
 package filesystem
 
 import "io"
 
-type Path string
-
 const EOF = FilesystemError("End of file")
 
+// A Path is a special type of string denoting a file or path on a
+// filesystem.
+type Path string
+
+// HasPrefix returns true iff op is a prefix of p.
 func (p Path) HasPrefix(op Path) bool {
 	if len(p) < len(op) {
 		return false
@@ -19,6 +26,8 @@ func (p Path) HasPrefix(op Path) bool {
 	return true
 }
 
+// A File is something, generally on disk, which is read or written to.
+// It's mostly a composition of various io interfaces.
 type File interface {
 	io.Reader
 	io.Writer
@@ -27,15 +36,28 @@ type File interface {
 	io.ByteReader
 	io.ByteWriter
 	RuneWriter
-	//Name() string
+
+	// IsDirectory() and AsDirectory() return true if this file is really
+	// a directory. They should probably be deprecated in favour of
+	// if d, ok := f.(Directory); ok { ... } now that enough of the Go
+	// runtime is implemented to do so.
 	IsDirectory() bool
 	AsDirectory() (Directory, error)
 }
 
+// A Directory is a special type of file which contains other files. Its
+// implementation is filesystem dependendent.
 type Directory interface {
 	File
+
+	// Returns a map of files in the directory. Note that since it's a map,
+	// the files are unordered when ranging through them, even if they're
+	// ordered on disk.
 	Files() map[string]File
 }
+
+// A filesystem represents an abstraction for accessing files (usually) on
+// disk.
 type Filesystem interface {
 	// Should initialize any internal data structures needed by the
 	// filesystem being implemented before mounting

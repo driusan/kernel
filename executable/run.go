@@ -1,3 +1,7 @@
+// package executable handles the interpreting of executables, loading
+// them from the filesystem and executing them.
+//
+// It's currently a stub.
 package executable
 
 import "io"

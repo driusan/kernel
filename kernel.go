@@ -1,3 +1,23 @@
+// kernel represents the entry point to an operating system kernel written
+// in (mostly) Go. It must be compiled and linked with gccgo and not the
+// standard Go toolchain so that it can be linked in freestanding mode.
+// Furthermore, it must be linked with gcc (the C) version to link in
+// freestanding mode. gccgo and gcc (C) use the same (C) calling
+// convention, so this isn't a big deal. However, it also means that the
+// assembly portions of the code are written in GAS and not Plan9/Go style
+// ASM so that gcc can compile them.
+//
+// All symbols expected by the Go runtime are not defined, so occasionally
+// a language feature will try and use a symbol that can't be linked. When
+// this happens putting the the gccgo frontend definition in libg/ and updating
+// the makefile is (usually) enough.
+//
+// Most Go language features should be available. However, there's currently a
+// bug where append() will go into an infinite loop if it needs to relocate the
+// data. goroutines are also unlikely to have the symbols that they require
+// defined, although I haven't tried.
+//
+// See the Makefile for details of how to compile/link.
 package kernel
 
 import (
@@ -17,7 +37,7 @@ import (
 )
 
 // Represents information passed along from multiboot compliant
-// bootloader
+// bootloader in the format specified by the multiboot spec.
 type BootInfo struct {
 	Flags,
 	MemLower,
@@ -38,16 +58,24 @@ type ElfSectionHeaderTable struct {
 	shndx uint32
 }
 
-func KernelMain(bi *BootInfo) {
+// KernelMain represents the entry point of the kernel from a multiboot
+// compliant bootloader. The bi parameter is a pointer to the boot information
+// passed along from the bootloader.
+func KernelMain(magic uint32, bi *BootInfo) {
 	// First init the video, so that we can print debug messages.
 	//term := terminal.Terminal{}
 	//terminal.Term = &term
 	terminal.InitializeTerminal()
+	if magic != 0x2badb002 {
+		println("Bad magic header. Not a multiboot bootloader")
+		return
+	}
 
 	// Initialize packages with package level variables
 	acpi.InitPkg()
-	// if we don't declare this ahead of time gccgo complains about
-	// goto skipping over its definition
+	// if we don't declare these ahead of time gccgo complains about
+	// goto skipping over their definition. They'll just be allocated
+	// on the stack, so it's not a big deal to define them ahead of time.
 	var rsdt *acpi.RSDT
 	var drive ide.IDEDrive
 	var mbrdata ide.DriveSector
@@ -71,20 +99,29 @@ func KernelMain(bi *BootInfo) {
 	// There's not really much reason to do that until there's something
 	// for the CPUs to do, though.
 	// Should also probably try and enter long mode here.
-	//memory.InitPkg()
+
+	// Set up identity paging for the kernel. This also initializes the
+	// structures used by the heap so that malloc and free will work. We
+	// don't need to be as careful about only using the stack from this
+	// point on.
+	// TODO: Set up paging in ASM before KernelMain, so that it can run
+	// at 0xC0000000 and reserve the lower 3GB for userspace.
 	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
+
+	// Now that the heap is initialized, these packages "init" functions can
+	// be run.
 	filesystem.InitPkg()
 	pci.InitPkg()
 	ps2.InitPkg()
 	ide.InitPkg()
 
-	print("Done init")
 	// Identify the by polling drive before interrupts are enabled.
 	drive, err = ide.IdentifyDrive(ide.PrimaryDrive)
 	if err != nil {
 		println("Drive error:", err.Error())
 	}
-
+	// and enable the PS2 mouse, otherwise all packets will show delta x/y
+	// of 0.
 	ps2.EnableMouse()
 
 	// Set up the GDT and interrupt handlers
@@ -101,9 +138,8 @@ func KernelMain(bi *BootInfo) {
 	interrupts.InstallHandler(12, ps2.MouseHandler)
 	interrupts.InstallHandler(14, ide.PrimaryDriveHandler)
 
-	interrupts.Enable()
-
 	// runs an STI instruction to enable interrupts
+	interrupts.Enable()
 
 	// Now that everything is configured, print the memory.
 	print(bi.MemLower, "kb of memory in lower memory.\n")
@@ -115,11 +151,12 @@ func KernelMain(bi *BootInfo) {
 	print("PCI Devices on system: \n")
 	pci.EnumerateDevices()
 
+	// Read the partition table from the MBR.
+	// TODO: Read it from the GPT if it exists.
 	mbrdata, err = ide.ReadLBA(drive, 0)
 	if err != nil {
 		println("Drive error:", err.Error())
 	}
-
 	pts = mbr.ExtractPartitions(mbrdata.Data)
 
 	for i, p := range pts {

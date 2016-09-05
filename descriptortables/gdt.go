@@ -1,23 +1,20 @@
+// package descriptortables handles the parsing and loading of IDT/GDT
+// descriptor tables in Go.
+//
+// The main reason it's in a separate package is to avoid cyclical imports.
 package descriptortables
 
 import "unsafe"
 
-/* Loads a GDT entry. I haven't figured out how to do the
- *__attribute((packed))__ in gccgo, so for now this is in C.
- *
- * Copied from Brendon's tutorial at
- * http://www.osdever.net/bkerndev/Docs/gdt.htm
- * Mostly so that we can get on to interupts.
- */
+// GDTEntry denotes a GDT entry. The packing is important, and
+// Go doesn't have any way to define __attribute__((packed)), so
+// it's defined as a byte array with Set() methods to manually place the
+// bytes into the endian-correct packed location.
+type GDTEntry [8]byte
 
-/* Defines a GDT entry. We say packed, because it prevents the
-*  compiler from doing things that it thinks is best: Prevent
-*  compiler "optimization" by packing */
-type GdtEntry [8]byte
-
-// Limit is actually a 20 bit integer.
+// Sets the limit for this GDT entry. Limit is actually a 20 bit integer.
 // TODO: This should return an error type if the parameter is invalid.
-func (e *GdtEntry) SetLimit(limit uint32) {
+func (e *GDTEntry) SetLimit(limit uint32) {
 	e[0] = byte((limit & 0x0FF00) >> 8)
 	e[1] = byte((limit & 0x000FF))
 
@@ -26,17 +23,14 @@ func (e *GdtEntry) SetLimit(limit uint32) {
 	e[6] = byte((limit&0x0F0000)>>16) | (e[6] & 0xF0)
 }
 
-func (e *GdtEntry) SetBase(base uint32) {
-	/* This was:
-	   gdt[num].base_low = (base & 0xFFFF);
-	   gdt[num].base_middle = (base >> 16) & 0xFF;
-	   gdt[num].base_high = (base >> 24) & 0xFF;
-	*/
-
+// Sets the base of this GDTEntry.
+func (e *GDTEntry) SetBase(base uint32) {
+	// The encoding required by x86 separates the high and low bytes
 	// Base_low portion
 	e[2] = byte((base & 0x000000FF))
 	e[3] = byte((base & 0x0000FF00) >> 8)
 	e[4] = byte((base & 0x00FF0000) >> 16)
+
 	// The last byte of the base encoding is separated by the access byte,
 	// limit and flags
 	e[7] = byte((base >> 24) & 0xFF)
@@ -46,36 +40,32 @@ func (e *GdtEntry) SetBase(base uint32) {
 // sub Set* helpers for each flag. For now, the bits should be set in the
 // higher nibble of the byte in this parameter.
 // This should also check the parameter and return an error when appropriate.
-func (e *GdtEntry) SetFlags(b byte) {
+func (e *GDTEntry) SetFlags(b byte) {
 	e[6] = b&0xF0 | e[6]&0x0F
 	// TODO: The flags should have consts defined to reference them.
 }
-func (e *GdtEntry) SetAccess(b byte) {
+
+// Sets the access byte for this GDT entry.
+func (e *GDTEntry) SetAccess(b byte) {
 	e[5] = b
 }
 
-func (e *GdtEntry) SetGranularity(b byte) {
-	e[6] = b // e[6] = b&0x0F | e[6]&0xF0
+// Sets the granularity for this GDT entry.
+func (e *GDTEntry) SetGranularity(b byte) {
+	e[6] = b
 }
 
-/*struct gdt_entry
-{
-    unsigned short limit_low; 2
-    unsigned short base_low; 2
-    unsigned char base_middle; 1
-    unsigned char access; 1
-    unsigned char granularity; 1
-    unsigned char base_high; 1
-} __attribute__((packed));
-*/
-
+// A DescriptorTablePointer is a pointer to either an IDT or a GDT encoded
+// in a way that the LGDT or LIDT instructions are valid.
 type DescriptorTablePointer [6]byte
 
+// Set the size of the descriptor table
 func (e *DescriptorTablePointer) SetSize(l uint16) {
 	e[1] = byte((l & 0xFF00) >> 8)
 	e[0] = byte(l & 0x00FF)
 }
 
+// Set the base address of the descriptor table.
 func (e *DescriptorTablePointer) SetBase(l uintptr) {
 	e[5] = byte((l & 0xFF000000) >> 24)
 	e[4] = byte((l & 0x00FF0000) >> 16)
@@ -83,83 +73,51 @@ func (e *DescriptorTablePointer) SetBase(l uintptr) {
 	e[2] = byte((l & 0x000000FF))
 }
 
-type GDTPointer DescriptorTablePointer
+// Our GDT. The one currently loaded by our kernel only has 3 entries.
+var Gdt [3]GDTEntry
 
-/* Special pointer which includes the limit: The max bytes
-*  taken up by the GDT, minus 1. Again, this NEEDS to be packed */
-/*struct gdt_ptr
-{
-    unsigned short limit;
-    unsigned int base;
-} __attribute__((packed));
-*/
-/* Our GDT, with 3 entries, and finally our special GDT pointer */
-
-var Gdt [3]GdtEntry
-
-//struct gdt_entry gdt[3];
+// The pointer to the GDT used by our kernel.
 var GDTPtr DescriptorTablePointer
 
 //struct gdt_ptr gp;
 
-/* This will be a function in start.asm. We use this to properly
-*  reload the new segment registers */
+// This is defined in assembly. It will load the GDT pointed to by GDTPtr.
+//
 //extern gdt_flush
-func GdtFlush()
+func GDTFlush()
 
-//extern halt
-func Halt()
-
-/* Setup a descriptor in the Global Descriptor Table */
-func GdtSetGate(num int, base, limit uint32, access, gran byte) {
+// Setup a descriptor in the Global Descriptor Table.
+func GDTSetGate(num int, base, limit uint32, access, gran byte) {
 	gate := &Gdt[num]
 	gate.SetBase(base)
 	gate.SetLimit(limit)
 	gate.SetAccess(access)
 	gate.SetGranularity(gran)
-
-	/*
-	   // Setup the descriptor base address
-	   gdt[num].base_low = (base & 0xFFFF);
-	   gdt[num].base_middle = (base >> 16) & 0xFF;
-	   gdt[num].base_high = (base >> 24) & 0xFF;
-
-	   // Setup the descriptor limits
-	   gdt[num].limit_low = (limit & 0xFFFF);
-	   gdt[num].granularity = ((limit >> 16) & 0x0F);
-
-	   // Finally, set up the granularity and access flags
-	   gdt[num].granularity |= (gran & 0xF0);
-	   gdt[num].access = access;
-	*/
 }
 
-/* Should be called by main. This will setup the special GDT
-*  pointer, set up the first 3 entries in our GDT, and then
-*  finally call gdt_flush() in our assembler file in order
-*  to tell the processor where the new GDT is and update the
-*  new segment registers */
-func GDTInstall() { //addr uintptr) {
-	/* Setup the GDT pointer and limit */
+// GDTInstall is called by the kernel to setup and install the GDT.
+func GDTInstall() {
+	// Set up the GDTPtr
 	p := &GDTPtr
 	p.SetSize((8 /* sizeof gdt_entry */ * 3 /* num entries */) - 1)
 	p.SetBase(uintptr(unsafe.Pointer(&Gdt)))
 
-	/* Our NULL descriptor */
-	GdtSetGate(0, 0, 0, 0, 0)
+	// Setup the null descriptor
+	GDTSetGate(0, 0, 0, 0, 0)
 
-	/* The second entry is our Code Segment. The base address
-	 *  is 0, the limit is 4GBytes, it uses 4KByte granularity,
-	 *  uses 32-bit opcodes, and is a Code Segment descriptor.
-	 *  Please check the table above in the tutorial in order
-	 *  to see exactly what each value means */
-	GdtSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF)
+	// Set up the code segment to span the entire memory.
+	// We're not as cautious as we should be with protecting things
+	// with the GDT, but this allows us to setup the IDT.
+	//
+	// TODO: This should use fewer magic values. This has a 4GB limit,
+	// 4KByte granularity, and 32-bit opcodes.
+	GDTSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF)
 
-	/* The third entry is our Data Segment. It's EXACTLY the
-	 *  same as our code segment, but the descriptor type in
-	 *  this entry's access byte says it's a Data Segment */
-	GdtSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF)
+	// Setup the data segment. It's the
+	// Setup the data segment. It's exactly the same as the code segment,
+	// but the access byte says it's data.
+	GDTSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF)
 
-	/* Flush out the old GDT and install the new changes! */
-	GdtFlush()
+	// Install the new GDT.
+	GDTFlush()
 }
