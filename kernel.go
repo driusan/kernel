@@ -76,7 +76,7 @@ func KernelMain(magic uint32, bi *BootInfo) {
 	// if we don't declare these ahead of time gccgo complains about
 	// goto skipping over their definition. They'll just be allocated
 	// on the stack, so it's not a big deal to define them ahead of time.
-	var rsdt *acpi.RSDT
+	//var rsdt *acpi.RSDT
 	var drive ide.IDEDrive
 	var mbrdata ide.DriveSector
 	var pts *mbr.Partitions
@@ -87,25 +87,26 @@ func KernelMain(magic uint32, bi *BootInfo) {
 		goto errExit
 	}
 
-	println("Found ACPI Table at", ptr, " from OEM", string(ptr.OEMID[:]))
-	rsdt, err = ptr.GetRSDT()
+	// the [:] hack causes a page fault until InitializePaging is done below,
+	// so disable this for now.
+	//println("Found ACPI Table at", ptr, " from OEM", string(ptr.OEMID[:]))
+	_, err = ptr.GetRSDT()
 	if err != nil {
 		println(err.Error())
 		goto errExit
 	}
 
-	println("RSDT Signature:", string(rsdt.Signature[:]))
+	// Not printing here for the same reason..
+	// println("RSDT Signature:", string(rsdt.Signature[:]))
 	// TODO: Initialize multiple CPUs based on the MADT table in ACPI.
 	// There's not really much reason to do that until there's something
 	// for the CPUs to do, though.
 	// Should also probably try and enter long mode here.
 
-	// Set up identity paging for the kernel. This also initializes the
-	// structures used by the heap so that malloc and free will work. We
-	// don't need to be as careful about only using the stack from this
-	// point on.
-	// TODO: Set up paging in ASM before KernelMain, so that it can run
-	// at 0xC0000000 and reserve the lower 3GB for userspace.
+	// Initialize paging does more than it claims. It reinitializes paging
+	// from a higher level, and identity maps all the memory that the
+	// bootloader told us about. It also initializes the structures used by
+	// malloc and free. After this, we can allocate memory.
 	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
 
 	// Now that the heap is initialized, these packages "init" functions can

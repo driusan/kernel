@@ -4,6 +4,9 @@ loadPageDirectory:
 push %ebp
 mov %esp, %ebp
 mov 8(%esp), %eax
+# Convert the pointer that was passed from virtual address space
+# to physical before putting it in register cr3.
+sub $0xC0000000, %eax
 mov %eax, %cr3
 mov %ebp, %esp
 pop %ebp

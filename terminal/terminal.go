@@ -137,10 +137,11 @@ func setbuffer(t *Terminal, idx uint16, val VgaCharacter)
 func getbuffer(t *Terminal, idx uint16) VgaCharacter
 
 func InitializeTerminal() {
+	Term = (*Terminal)(unsafe.Pointer(uintptr(0xC0000000)))
 	Term.Row = 0
 	Term.Column = 0
 	Term.Color = MakeColor(COLOR_LIGHT_GREY, COLOR_BLACK)
-	Term.Buffer = (*uint16)(unsafe.Pointer(uintptr(0xB8000)))
+	Term.Buffer = (*uint16)(unsafe.Pointer(uintptr(0xC00B8000)))
 	for y := uint16(0); y < VGA_HEIGHT; y++ {
 		for x := uint16(0); x < VGA_WIDTH; x++ {
 			Term.PutEntryAt(' ', Term.Color, x, y)

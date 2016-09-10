@@ -39,7 +39,10 @@ type PageDirectory *[1024]uint32
 type PageTableEntry *[1024]uint32
 
 func GetTableAddress(pt PageTableEntry) uint32 {
-	return uint32(uintptr(unsafe.Pointer(pt)))
+	// The linker linked all the symbols in virtual address space, but
+	// paging needs to use the physical address, so we subtract 3GB
+	// from the pointer.
+	return uint32(uintptr(unsafe.Pointer(pt))) - 0xC0000000
 }
 
 //extern getPageDirectory
@@ -77,6 +80,9 @@ func InitializePaging(MMapAddr, MMapLength uintptr) {
 
 	// Start by identity mapping the first page and mark it as present,
 	// regardless of what the boot loader told us.
+	// TODO: Make a proper frame page allocator instead of this hack which
+	// makes all memory except for kernel space identity mapped.
+
 	for i = 0; i < 1024; i++ {
 		table[i] = (i * 0x1000) | PagePresent | PageReadWrite
 	}
@@ -84,8 +90,6 @@ func InitializePaging(MMapAddr, MMapLength uintptr) {
 
 	// Now identity map the rest of the memory that the multiboot loader
 	// told us about.
-	// TODO: Map the kernel into the higher portion of memory and locate
-	//       the page table there.
 	var mmap *MultibootMemoryMap
 
 	// Now mark anything above the first MB that the multiboot boot loader
@@ -133,6 +137,23 @@ func InitializePaging(MMapAddr, MMapLength uintptr) {
 		offset += unsafe.Sizeof(mmap) // *MultibootMemoryMap)
 		offset += uintptr(mmap.Size)
 	}
+
+	// Now, map to page table entries from 0xC0000000 for the kernel.
+	i = 768
+	table = getPageTable(uint16(i))
+
+	for pageIdx := 0; pageIdx < 1024; pageIdx++ {
+		table[pageIdx] = (uint32(pageIdx) * 0x1000) | PagePresent | PageReadWrite
+	}
+	pd[i] = GetTableAddress(table) | PagePresent | PageReadWrite
+
+	i = 769
+	table = getPageTable(uint16(i))
+	for pageIdx := 0; pageIdx < 1024; pageIdx++ {
+		table[pageIdx] = (uint32(pageIdx)*0x1000 + (4096 * 1024)) | PagePresent | PageReadWrite
+	}
+	pd[i] = GetTableAddress(table) | PagePresent | PageReadWrite
+
 	loadPageDirectory(pd)
 	enablePaging()
 

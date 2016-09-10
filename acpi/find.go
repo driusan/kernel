@@ -48,7 +48,7 @@ func (r RSDPtr) GetRSDT() (*RSDT, error) {
 // to the RSDP Ptr defined by the ACPI spec.
 func FindRSDP() (*RSDPtr, error) {
 	var Desc *RSDPtr //[8]byte
-	for addr := 0xE0000; addr < 0xFFFFF; addr += 16 {
+	for addr := uint64(0xC00E0000); addr < 0xC00FFFFF; addr += 16 {
 		Desc = ((*RSDPtr)(unsafe.Pointer(uintptr(addr))))
 		if Desc.Signature[0] == 'R' && Desc.Signature[1] == 'S' && Desc.Signature[2] == 'D' && Desc.Signature[3] == ' ' &&
 			Desc.Signature[4] == 'P' && Desc.Signature[5] == 'T' && Desc.Signature[6] == 'R' && Desc.Signature[7] == ' ' {

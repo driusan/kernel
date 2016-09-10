@@ -139,7 +139,7 @@ shell.o: ${SHELLPKGSRC} process.o executable.o
 	${GO} -I`go env GOPATH`/src -c shell/*.go -o shell.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/shell
 
 %.o: %.s
-	${AS} $< -o $@
+	${AS} -gstab+ $< -o $@
 %.o: %.goc
 	${GO} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
@@ -151,6 +151,9 @@ kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps
 
 myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o filesystem/fat.o
 	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o -lgcc
+
+debug: myos.bin
+	qemu-system-x86_64 -m 4G -S -gdb tcp:127.0.0.1:1234 -hda test.img -d int -kernel myos.bin -no-reboot
 
 run: myos.bin
 	qemu-system-x86_64 -m 4G -hda test.img -kernel myos.bin -no-reboot
