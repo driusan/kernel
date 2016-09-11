@@ -23,17 +23,19 @@ type DriveSector struct {
 	Sector uint64
 }
 
-var LastSectorRead DriveSector
+var lastSectorRead DriveSector
+var readComplete bool
 
 func PrimaryDriveHandler(r *interrupts.Registers) {
 	//print("Reading data")
 	var data uint16
 	for i := 0; i < 256; i++ {
 		data = asm.INW(PrimaryDataPort)
-		LastSectorRead.Data[(2*i)+1] = byte((data >> 8) & 0xFF)
-		LastSectorRead.Data[(2*i)+0] = byte(data & 0xFF)
+		lastSectorRead.Data[(2*i)+1] = byte((data >> 8) & 0xFF)
+		lastSectorRead.Data[(2*i)+0] = byte(data & 0xFF)
 	}
 	asm.INB(PrimaryStatus)
+	readComplete = true
 }
 
 // for some reason this doesn't work as a method, even though it should
@@ -41,7 +43,7 @@ func PrimaryDriveHandler(r *interrupts.Registers) {
 //func (d IDEDrive) ReadLBA(lba uint64) error {
 func ReadLBA(d IDEDrive, lba uint64) (DriveSector, error) {
 	//print("Reading LBA ", lba)
-
+	readComplete = false
 	if d.Drive != PrimaryDrive {
 		print("Drive ", d.Drive)
 		return DriveSector{}, InvalidDrive
@@ -61,11 +63,13 @@ func ReadLBA(d IDEDrive, lba uint64) (DriveSector, error) {
 	asm.OUTB(PrimaryLBAhi, byte((lba>>16)&0xFF))
 	asm.OUTB(PrimaryCommand, ReadSectors)
 
-	LastSectorRead.Sector = lba
-	asm.HLT()
+	lastSectorRead.Sector = lba
+	for readComplete != true {
+		asm.HLT()
+	}
 	// TODO: Verify that it was the right type of interrupt that woke
 	// us up
-	return LastSectorRead, nil
+	return lastSectorRead, nil
 	//println("Leaving ReadLBA ", lba)
 	//return nil
 }
