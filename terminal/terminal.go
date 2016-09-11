@@ -4,6 +4,8 @@ import "C"
 
 import (
 	"unsafe"
+
+	"github.com/driusan/kernel/asm"
 )
 
 // If we import C, the GCCGO cross-compiler claims we're not using it.
@@ -21,6 +23,15 @@ const (
 	VGA_HEIGHT = 25
 )
 
+const (
+	FB_COMMAND_PORT = 0x3D4
+	FB_DATA_PORT    = 0x3D5
+)
+
+const (
+	FB_HIGH_BYTE_COMMAND = 14 + iota
+	FB_LOW_BYTE_COMMAND
+)
 const (
 	COLOR_BLACK = iota
 	COLOR_BLUE
@@ -128,6 +139,15 @@ func (t *Terminal) PutChar(c byte) {
 
 		}
 	}
+	t.MoveCursor(t.Column, t.Row)
+}
+
+func (t *Terminal) MoveCursor(x, y uint16) {
+	pos := uint16(y*VGA_WIDTH + x)
+	asm.OUTB(FB_COMMAND_PORT, FB_HIGH_BYTE_COMMAND)
+	asm.OUTB(FB_DATA_PORT, byte((pos>>8)&0xFF))
+	asm.OUTB(FB_COMMAND_PORT, FB_LOW_BYTE_COMMAND)
+	asm.OUTB(FB_DATA_PORT, byte(pos&0x00FF))
 }
 
 //extern setbuffer
