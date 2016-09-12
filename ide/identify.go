@@ -42,6 +42,7 @@ var InvalidDrive IDEError
 
 func InitPkg() {
 	InvalidDrive = IDEError("Invalid drive")
+	lastSectorRead = DriveSector{}
 }
 func SelectDrive(drive DriveSelector) (DriveStatus, error) {
 	if drive != PrimaryDrive && drive != SecondaryDrive {

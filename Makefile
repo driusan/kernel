@@ -118,11 +118,11 @@ pci.o: ${PCIPKGSRC} terminal.o
 memory.o: ${MEMPKGSRC} memory/cpaging.o C.o
 	${GO} -I`go env GOPATH`/src -c ${MEMPKGSRC} -o memory.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/memory
 
-executable.o: ${EXEPKGSRC} io.o
+executable.o: ${EXEPKGSRC} io.o executable/plan9.o
 	${GO} -I`go env GOPATH`/src -c executable/*.go -o executable.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable
 
-# executable/plan9.o: ${PLAN9EXEPKGSRC}
-#	${GO} -I`go env GOPATH`/src -c executable/plan9/*.go -o executable/plan9.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable/plan9
+executable/plan9.o: ${PLAN9EXEPKGSRC}
+	${GO} -I`go env GOPATH`/src -c executable/plan9/*.go -o executable/plan9.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/executable/plan9
 
 input/ps2.o: ${PS2PKGSRC} filesystem.o
 	${GO} -I`go env GOPATH`/src -c input/ps2/*.go -o input/ps2.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel/input/ps2
@@ -150,7 +150,7 @@ kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
 myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o filesystem/fat.o
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o -lgcc
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o executable/*.o -lgcc
 
 debug: myos.bin
 	qemu-system-x86_64 -m 4G -S -gdb tcp:127.0.0.1:1234 -hda test.img -d int -kernel myos.bin -no-reboot
