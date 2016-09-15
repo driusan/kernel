@@ -21,7 +21,7 @@ func Run(r io.Reader) error {
 	header := make([]byte, 32)
 	n, err := r.Read(header)
 	if n != 32 {
-		println("Read", n)
+		//println("Read", n)
 		return ExeError("Could not read program header.")
 	}
 	if err != nil {

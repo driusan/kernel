@@ -2,7 +2,7 @@ package plan9
 
 import (
 	"io"
-	"unsafe"
+	//"unsafe"
 	//"github.com/driusan/kernel/asm"
 )
 
@@ -27,18 +27,20 @@ func Run(h *ExecHeader, r io.Reader) error {
 	dataSegment := make([]byte, dataSize)
 	n, err = r.Read(dataSegment)
 	if n != int(dataSize) {
-		println("Got", n, " want", dataSize)
+		//println("Got", n, " want", dataSize)
 		return Plan9Error("Could not read data segment in one shot. TODO: Make this more robust")
 	}
 	if err != nil {
 		return err
 	}
 
+	/*
 	println("First byte", textSegment[0], "of", textSize)
 	println("Entry point", h.EntryPoint.Uint32(), " at", uintptr(unsafe.Pointer(&textSegment[h.EntryPoint.Uint32()])))
 	for i := 0; i < 10; i++ {
 		println("i", i, textSegment[h.EntryPoint.Uint32()+uint32(i)])
 	}
+*/
 
 	//asm.CALL(uintptr(unsafe.Pointer(&textSegment[h.EntryPoint.Uint32()])))
 	return Plan9Error("Run Plan9 style a.out file not yet implemented")

@@ -144,7 +144,7 @@ shell.o: ${SHELLPKGSRC} process.o executable.o
 	${GO} -c $< -o $@ -std=gnu99 -ffreestanding -fno-inline-small-functions -Wall -Wextra
 
 %.o: %.c  
-	${CC} -c $< -o $@ -std=gnu99 -fplan9-extensions -ffreestanding -fno-inline-small-functions -Wall -Wextra
+	${CC} -c $< -o $@ -std=gnu99 -fplan9-extensions -ffreestanding -fno-inline-small-functions -Wall -Wextra -g
 
 kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o terminal.o mbr.o shell.o
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel

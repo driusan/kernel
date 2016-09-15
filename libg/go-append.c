@@ -58,8 +58,10 @@ __go_append (struct __go_open_array a, void *bvalues, uintptr_t bcount,
       if (element_size > 0 && (uintptr) m > MaxMem / element_size)
 	runtime_panicstring ("growslice: cap out of range");
 
-      capmem = runtime_roundupsize (m * element_size);
-
+	/* This is a change from gccgo. runtime_roundupsize doesn't
+	   work because the tables it uses aren't initialized. */
+      //capmem = runtime_roundupsize (m * element_size);
+	capmem = m*element_size;
       n = __go_alloc (capmem);
       __builtin_memcpy (n, a.__values, a.__count * element_size);
 

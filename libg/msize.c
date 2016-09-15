@@ -29,6 +29,7 @@
 //#include "arch.h"
 #include "malloc.h"
 #define	ROUND(x, n)	(((x)+(n)-1)&~(uintptr)((n)-1)) /* all-caps to mark as macro: it evaluates n twice */
+/*
 int32 runtime_class_to_size[NumSizeClasses];
 int32 runtime_class_to_allocnpages[NumSizeClasses];
 
@@ -43,7 +44,6 @@ int32 runtime_class_to_allocnpages[NumSizeClasses];
 
 int8 runtime_size_to_class8[1024/8 + 1];
 int8 runtime_size_to_class128[(MaxSmallSize-1024)/128 + 1];
-/*
 
 int32
 runtime_SizeToClass(int32 size)
@@ -159,7 +159,7 @@ dump:
 	}
 	runtime_throw("InitSizes failed");
 }
-*/
+
 // Returns size of the memory block that mallocgc will allocate if you ask for the size.
 uintptr
 runtime_roundupsize(uintptr size)
@@ -174,3 +174,4 @@ runtime_roundupsize(uintptr size)
 		return size;
 	return ROUND(size, PageSize);
 }
+*/

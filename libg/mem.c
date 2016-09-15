@@ -34,9 +34,11 @@ void* memset(void *b, int c, size_t len) {
 
 void* memmove(void *dst, const void *src, size_t len) {
 	if (dst > src) {
-		for (size_t pos = len-1; pos > 0; pos--) {
-		      *(((unsigned char*)dst) + pos) = *(((unsigned char*)src) + pos);
-
+		for (size_t pos = len-1; pos >= 0; pos--) {
+			*(((unsigned char*)dst) + pos) = *(((unsigned char*)src) + pos);
+			if (pos == 0) {
+				return dst;
+			}
 		}
 	} else if (dst < src) {
 		for (size_t pos = 0; pos < len; pos++) {

@@ -16,7 +16,8 @@ __go_string_to_byte_array (String str)
   unsigned char *data;
   struct __go_open_array ret;
 
-  cap = runtime_roundupsize (str.len);
+	// runtime_roundupsize is not properly implemented in the kernel
+  cap = str.len; //runtime_roundupsize (str.len);
 
   data = (unsigned char *) runtime_mallocgc (cap, 0, FlagNoScan | FlagNoZero);
 

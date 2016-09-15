@@ -9,7 +9,7 @@ void*
 runtime_mallocgc(uintptr_t size, uintptr_t typ, uint32_t flag)
 {
 	if (size == 0) {
-		return (void *)0xFF00000; //&runtime_zerobase;
+		return &runtime_zerobase;
 	}
 	return malloc(size);
 }
