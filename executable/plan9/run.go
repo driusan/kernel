@@ -2,8 +2,10 @@ package plan9
 
 import (
 	"io"
-	//"unsafe"
-	//"github.com/driusan/kernel/asm"
+	"unsafe"
+
+	"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/memory"
 )
 
 type Plan9Error string
@@ -27,21 +29,55 @@ func Run(h *ExecHeader, r io.Reader) error {
 	dataSegment := make([]byte, dataSize)
 	n, err = r.Read(dataSegment)
 	if n != int(dataSize) {
-		//println("Got", n, " want", dataSize)
 		return Plan9Error("Could not read data segment in one shot. TODO: Make this more robust")
 	}
 	if err != nil {
 		return err
 	}
 
-	/*
-	println("First byte", textSegment[0], "of", textSize)
-	println("Entry point", h.EntryPoint.Uint32(), " at", uintptr(unsafe.Pointer(&textSegment[h.EntryPoint.Uint32()])))
+	println("First byte", textSegment[0], "of", textSize, " at ", &textSegment[0])
+	println("Entry point", h.EntryPoint.Uint32())
+	println("Text segment (+10)")
 	for i := 0; i < 10; i++ {
-		println("i", i, textSegment[h.EntryPoint.Uint32()+uint32(i)])
+		print("i", i, ":", textSegment[i], " ")
+		print("i", i, ":", textSegment[h.EntryPoint.Uint32()+uint32(i)], " ")
 	}
-*/
 
-	//asm.CALL(uintptr(unsafe.Pointer(&textSegment[h.EntryPoint.Uint32()])))
+	print(&textSegment[0])
+	println("\nAddress By unsafe.Pointer: T0-10")
+	start := uintptr(unsafe.Pointer(&textSegment[0]))
+	for i := 0; i < 10; i++ {
+		print("i", i, ":", *(*byte)(unsafe.Pointer(start + uintptr(i))), " ")
+
+	}
+
+	textAddr, err := memory.GetPhysicalAddress(unsafe.Pointer(&textSegment[0]))
+	if err != nil {
+		return nil
+	}
+	dAddr, err := memory.GetPhysicalAddress(unsafe.Pointer(&dataSegment[0]))
+	if err != nil {
+		return nil
+	}
+	err = memory.LoadMap(
+		memory.MMapEntry{
+			textAddr,
+			0,
+			uint(textSize)},
+		memory.MMapEntry{
+			dAddr,
+			0,
+			uint(dataSize)},
+	)
+	if err != nil {
+		return err
+	}
+	println("\nAddress 0-10")
+	for i := 0; i < 10; i++ {
+		print("i", i, ":", *(*byte)(unsafe.Pointer(uintptr(i))), " ")
+		print("i", i, ":", *(*byte)(unsafe.Pointer(uintptr(h.EntryPoint.Uint32() + uint32(i)))), " ")
+
+	}
+	asm.JMP(unsafe.Pointer(uintptr(h.EntryPoint.Uint32())))
 	return Plan9Error("Run Plan9 style a.out file not yet implemented")
 }

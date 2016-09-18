@@ -5,7 +5,8 @@ import "C"
 
 import (
 	"unsafe"
-	//"github.com/driusan/kernel/asm"
+
+	"github.com/driusan/kernel/asm"
 	//"github.com/driusan/kernel/terminal"
 )
 
@@ -45,6 +46,17 @@ func GetTableAddress(pt PageTableEntry) uint32 {
 	return uint32(uintptr(unsafe.Pointer(pt))) - 0xC0000000
 }
 
+// maps an address to the page table and entry in that table which
+// corresponds to that address
+func getTableEntryForAddress(a uintptr) (uint16, uint16, error) {
+	if a%PageSize != 0 {
+		return 0, 0, MemoryError("Address is not page aligned")
+	}
+	tbl := a / (1024 * PageSize)
+	e := (a / PageSize) % 1024
+	return uint16(tbl), uint16(e), nil
+}
+
 //extern getPageDirectory
 func getPageDirectory() PageDirectory
 
@@ -67,10 +79,73 @@ type MultibootMemoryMap struct {
 	Memtype  uint32
 }
 
+// Denotes a single mapping from a physical address to a
+// virtual address space.
+type MMapEntry struct {
+	// The physical address to be mapped. Must be page aligned.
+	PAddr uintptr
+	// The virtual address. The zero value for VAddr means
+	// "the next available address" when loading a map.
+	VAddr uint
+
+	// The size in bytes of the memory to be mapped.
+	Length uint
+}
+
+func GetPhysicalAddress(addr unsafe.Pointer) (uintptr, error) {
+	t, e, err := getTableEntryForAddress(uintptr(addr))
+	if err != nil {
+		return 0, err
+	}
+
+	table := getPageTable(t)
+	adr := uintptr(table[e]) & 0xFFFFF000
+	return adr, nil
+}
+
+// Updates the page table so that for each segment in segments maps to
+// the physical address to the corresponding virtual address.
+func LoadMap(segments ...MMapEntry) error {
+	var startAddr uint
+
+	for _, me := range segments {
+		if me.PAddr%PageSize != 0 {
+			return MemoryError("Physical address is not page aligned.")
+		}
+		if me.VAddr%PageSize != 0 {
+			return MemoryError("Virtual address is not page aligned.")
+		}
+
+		if me.VAddr == 0 {
+			me.VAddr = startAddr
+		}
+
+		for addr := me.VAddr; addr < (me.VAddr + me.Length); addr += PageSize {
+			if addr >= 0xC0000000 {
+				return MemoryError("Can not remap kernel address space.")
+			}
+
+			t, e, err := getTableEntryForAddress(uintptr(addr))
+			if err != nil {
+				return err
+			}
+			table := getPageTable(t)
+
+			offset := uint32(me.VAddr - addr)
+			if addr == 286720 {
+				print("Table", t, " entry ", e, ": paddress: ", (uint32(me.PAddr) + offset))
+				print("Break here!")
+			}
+			table[e] = (uint32(me.PAddr) + (offset)) | PagePresent | PageReadWrite
+			asm.INVLPG(uintptr(addr))
+			startAddr = addr + PageSize
+		}
+	}
+	return nil
+}
 func InitializePaging(MMapAddr, MMapLength uintptr) {
 	pd := getPageDirectory()
 	table := getPageTable(0)
-	println("Table 0 address", GetTableAddress(table))
 
 	var i uint32
 	// Mark all pages as readwrite, but not present.

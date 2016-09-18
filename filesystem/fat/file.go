@@ -127,7 +127,7 @@ func (f fat32File) WriteByte(byte) error {
 func (f fat32File) WriteRune(rune) error {
 	return filesystem.FilesystemError("Writing files not yet implemented")
 }
-func (f fat32File) Seek(offset int64, whence int) (int64, error) {
+func (f *fat32File) Seek(offset int64, whence int) (int64, error) {
 	var attemptedFinal int64
 	switch whence {
 	case 0: // io.SeekStart

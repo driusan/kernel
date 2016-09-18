@@ -27,5 +27,7 @@ func Run(r io.Reader) error {
 	if err != nil {
 		return err
 	}
+	// Making r a ReadSeeker is causing a kernel panic, disabling for now.
+	//r.Seek(0, 0)
 	return plan9.Run((*plan9.ExecHeader)(unsafe.Pointer(&header[0])), r)
 }

@@ -21,6 +21,8 @@
 package kernel
 
 import (
+	"unsafe"
+
 	"github.com/driusan/kernel/acpi"
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/descriptortables"
@@ -108,6 +110,8 @@ func KernelMain(magic uint32, bi *BootInfo) {
 	// bootloader told us about. It also initializes the structures used by
 	// malloc and free. After this, we can allocate memory.
 	memory.InitializePaging(uintptr(bi.MMapAddr), uintptr(bi.MMapLength))
+
+	terminal.Term = (*terminal.Terminal)(unsafe.Pointer(uintptr(0xC0000000)))
 
 	// Now that the heap is initialized, these packages "init" functions can
 	// be run.

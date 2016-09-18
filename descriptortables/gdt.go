@@ -113,7 +113,6 @@ func GDTInstall() {
 	// 4KByte granularity, and 32-bit opcodes.
 	GDTSetGate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF)
 
-	// Setup the data segment. It's the
 	// Setup the data segment. It's exactly the same as the code segment,
 	// but the access byte says it's data.
 	GDTSetGate(2, 0, 0xFFFFFFFF, 0x92, 0xCF)
