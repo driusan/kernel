@@ -14,7 +14,7 @@ func ISRSInstall() {
 // Stores the state of CPU registers
 type Registers struct {
 	gs, fs, es, ds                         uint32 /* pushed the segs last */
-	edi, esi, ebp, esp, ebx, edx, ecx, eax uint32 /* pushed by 'pusha' */
+	edi, esi, ebp, esp, ebx, edx, ecx, Eax uint32 /* pushed by 'pusha' */
 	InterruptNo, err_code                  uint32 /* our 'push byte #' and ecodes do this */
 	eip, cs, eflags, useresp, ss           uint32 /* pushed by the processor automatically */
 }

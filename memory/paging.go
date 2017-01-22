@@ -1,13 +1,11 @@
 package memory
 
-// typedef struct{} Nothing;
-import "C"
+import _ "C"
 
 import (
 	"unsafe"
 
 	"github.com/driusan/kernel/asm"
-	//"github.com/driusan/kernel/terminal"
 )
 
 var isInitialized bool
@@ -15,14 +13,6 @@ var isInitialized bool
 func IsPagingInitialized() bool {
 	return isInitialized
 }
-
-// If we import C, the GCCGO cross-compiler claims we're not using it.
-// If we import it as _ "C", go test claims we can't rename it since it's
-// the real go tool chain.
-// This is a hack so that gmake, go test ./... and go fmt ./...
-// all work. C.Nothing is a struct{}, so hopefully this gets
-// optimized away by the compiler.
-type cNoop C.Nothing
 
 const (
 	PagePresent = 1 << iota
@@ -120,7 +110,7 @@ func LoadMap(segments ...MMapEntry) error {
 			me.VAddr = startAddr
 		}
 
-		for addr := me.VAddr; addr < (me.VAddr + me.Length); addr += PageSize {
+		for addr := me.VAddr; addr <= (me.VAddr + me.Length); addr += PageSize {
 			if addr >= 0xC0000000 {
 				return MemoryError("Can not remap kernel address space.")
 			}
@@ -131,11 +121,7 @@ func LoadMap(segments ...MMapEntry) error {
 			}
 			table := getPageTable(t)
 
-			offset := uint32(me.VAddr - addr)
-			if addr == 286720 {
-				print("Table", t, " entry ", e, ": paddress: ", (uint32(me.PAddr) + offset))
-				print("Break here!")
-			}
+			offset := uint32(addr - me.VAddr)
 			table[e] = (uint32(me.PAddr) + (offset)) | PagePresent | PageReadWrite
 			asm.INVLPG(uintptr(addr))
 			startAddr = addr + PageSize

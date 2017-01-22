@@ -4,5 +4,3 @@
 // import "C" or i686-elf-gccgo will complain about not being able to find
 // package C.
 package C
-
-type Nothing struct{}

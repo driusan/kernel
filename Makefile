@@ -3,7 +3,9 @@ CC=i686-elf-gcc
 GO=i686-elf-gccgo
 LD=i686-elf-gcc
 
-ASMOBJS=boot.o interrupts/interrupts.o asm/int.o descriptortables/dt.o memory/load.o
+ASMOBJS=boot.o interrupts/interrupts.o asm/int.o descriptortables/dt.o \
+	memory/load.o \
+	executable/plan9/int.o
 COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.o \
 	libg/kernel.o libg/go-runtime-error.o libg/go-type-string.o \
 	libg/go-type-interface.o \
@@ -35,7 +37,8 @@ COBJS=libg/golang.o libg/go-type-error.o libg/go-type-identity.o libg/go-strcmp.
 	asm/inout.o \
 	asm/call.o \
 	terminal/buffer.o \
-	memory/cpaging.o interrupts/irq.o interrupts/isrs.o
+	memory/cpaging.o interrupts/irq.o interrupts/isrs.o \
+	executable/plan9/syscall.o
 LIBGPKGSRC=libg/print.go
 GOSRC=kernel.go timer.go
 ASMPKGSRC=asm/inout.go asm/call.go
@@ -46,7 +49,7 @@ PS2PKGSRC=input/ps2/keyboard.go input/ps2/mouse.go
 ACPIPKGSRC=acpi/find.go
 IDEPKGSRC=ide/identify.go ide/drive.go
 TERMINALPKGSRC=terminal/print.go terminal/terminal.go
-MEMPKGSRC=memory/paging.go memory/malloc.go
+MEMPKGSRC=memory/paging.go memory/malloc.go memory/memmove.go
 MBRPKGSRC=mbr/mbr.go
 PROCESSPKGSRC=process/namespace.go process/new.go process/process.go
 FILESYSTEMPKGSRC=filesystem/interface.go filesystem/devfs.go filesystem/nullfs.go \
@@ -57,7 +60,7 @@ FATPKGSRC=filesystem/fat/fat32.go filesystem/fat/directory.go filesystem/fat/fil
 	filesystem/fat/lfn.go
 CPKGSRC=C/doc.go
 EXEPKGSRC=executable/run.go
-PLAN9EXEPKGSRC=executable/plan9/header.go executable/plan9/run.go
+PLAN9EXEPKGSRC=executable/plan9/header.go executable/plan9/run.go executable/plan9/syscall.go
 
 all: myos.bin
 
@@ -150,11 +153,21 @@ kernel.o: $(GOSRC) asm.o pci.o interrupts.o descriptortables.o memory.o input/ps
 	${GO} -I`go env GOROOT`/src -I`go env GOPATH`/src -c *.go -o kernel.o -Wall -Wextra -fgo-pkgpath=github.com/driusan/kernel
 
 myos.bin: $(ASMOBJS) $(COBJS) kernel.o asm.o pci.o interrupts.o descriptortables.o memory.o input/ps2.o acpi.o ide.o libg.o terminal.o mbr.o process.o filesystem/fat.o
-	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o libg/*.o asm/*.o interrupts/*.o memory/*.o descriptortables/*.o input/*.o terminal/*.o filesystem/*.o unicode/*.o executable/*.o -lgcc
+	${LD} -T linker.ld -o myos.bin -ffreestanding -nostdlib *.o \
+		libg/*.o \
+		asm/*.o \
+		interrupts/*.o \
+		memory/*.o \
+		descriptortables/*.o \
+		input/*.o terminal/*.o \
+		filesystem/*.o unicode/*.o executable/*.o \
+		executable/plan9/*.o -lgcc
 
 debug: myos.bin
 	qemu-system-x86_64 -m 4G -S -gdb tcp:127.0.0.1:1234 -hda test.img -d int -kernel myos.bin -no-reboot
 
+9front: myos.bin
+	qemu-system-x86_64 -m 4G -hda test.img -cdrom ~/VMs/9front.iso -boot d
 run: myos.bin
 	qemu-system-x86_64 -m 4G -hda test.img -kernel myos.bin -no-reboot
 

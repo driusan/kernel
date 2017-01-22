@@ -26,6 +26,7 @@ import (
 	"github.com/driusan/kernel/acpi"
 	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/descriptortables"
+	"github.com/driusan/kernel/executable/plan9"
 	"github.com/driusan/kernel/filesystem"
 	"github.com/driusan/kernel/filesystem/fat"
 	"github.com/driusan/kernel/ide"
@@ -138,13 +139,15 @@ func KernelMain(magic uint32, bi *BootInfo) {
 	// and the PIC
 	interrupts.IRQInstall()
 
-	interrupts.InstallHandler(0, TimerHandler)
-	interrupts.InstallHandler(1, ps2.KeyboardHandler)
-	interrupts.InstallHandler(12, ps2.MouseHandler)
-	interrupts.InstallHandler(14, ide.PrimaryDriveHandler)
+	interrupts.InstallIRQHandler(0, TimerHandler)
+	interrupts.InstallIRQHandler(1, ps2.KeyboardHandler)
+	interrupts.InstallIRQHandler(12, ps2.MouseHandler)
+	interrupts.InstallIRQHandler(14, ide.PrimaryDriveHandler)
 
 	// runs an STI instruction to enable interrupts
 	interrupts.Enable()
+
+	plan9.InstallSyscallInterrupt()
 
 	// Now that everything is configured, print the memory.
 	print(bi.MemLower, "kb of memory in lower memory.\n")

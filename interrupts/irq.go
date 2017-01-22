@@ -30,7 +30,7 @@ func IRQInstall() {
 	//make(map[int]func(*Registers))
 }
 
-func InstallHandler(port int, handler func(*Registers)) {
+func InstallIRQHandler(port int, handler func(*Registers)) {
 	inthandlers[port] = handler
 }
 

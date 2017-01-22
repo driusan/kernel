@@ -21,7 +21,7 @@ func (pte PartitionTableEntry) Type() string {
 		return "Unused"
 	case 0x05:
 		return "Extended"
-	case 0xb:
+	case 0xb, 0xc:
 		return "FAT32"
 	case 0x83:
 		return "EXT2"
