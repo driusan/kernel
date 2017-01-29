@@ -2,41 +2,43 @@
 # with iret instead of ret
 
 .text
-.globl github_com_driusan_kernel_executable_plan9.exec
-github_com_driusan_kernel_executable_plan9.exec:
-	# MOV $0xC0000000, %esp
-	# MOV $0, %eax
-	PUSH $0
-	PUSH $0
-	CALL 0x20 
-	# JMP $0x20
-
-.text
 .globl github_com_driusan_kernel_executable_plan9.p9int
 github_com_driusan_kernel_executable_plan9.p9int:
-	# Push all the registers onto the caller's parameters, so that we can
-	# work with them in Go.
 	cli
-	pusha
-	push %ds
-	push %es
-	push %fs
-	push %gs
-	mov $0x10, %ax
-	mov %ax, %ds
-	mov %ax, %es
-	mov %ax, %fs
-	mov %ax, %gs
-	mov %esp, %eax
-	push %eax
-	mov $github_com_driusan_kernel_executable_plan9.Syscall, %eax
-	call *%eax
-	pop %eax
-	pop %gs
-	pop %fs
-	pop %es
-	pop %ds
-	popa
-	add $8, %esp
+	cmp $8, %eax
+	je github_com_driusan_kernel_executable_plan9._exits
+	cmp $51, %eax
+	je github_com_driusan_kernel_executable_plan9._pwrite
+retsyscall:
 	iret
+
+.text
+.globl github_com_driusan_kernel_executable_plan9._pwrite
+github_com_driusan_kernel_executable_plan9._pwrite:
+	# The parameters are located at 16(%esp), but each time
+	# we push, the value of %esp changes by 4, so this is a little weird.
+	# It's basically pushing (16-32)(%esp) onto the stack, to ensure
+	# that when we get to the IRET, we haven't screwed up the return pointer
+	# PUSH 16(%esp)
+	PUSH 32(%esp)
+	# PUSH 20(%esp)
+	PUSH 32(%esp)
+	# PUSH 24(%esp)
+	PUSH 32(%esp)
+	# PUSH 28(%esp)
+	PUSH 32(%esp)
+	# PUSH 32(%esp)
+	PUSH 32(%esp)
+	CALL github_com_driusan_kernel_executable_plan9.Pwrite
+	ADD $20, %esp
+	IRET
+
+.text
+.globl github_com_driusan_kernel_executable_plan9._exits
+github_com_driusan_kernel_executable_plan9._exits:
+	CALL github_com_driusan_kernel_executable_plan9.Exits
+ihalt:
+	HLT
+	JMP ihalt
+#	JMP retsyscall
 

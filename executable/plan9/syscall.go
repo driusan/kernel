@@ -1,9 +1,11 @@
 package plan9
 
 import (
-	"github.com/driusan/kernel/interrupts"
-
 	_ "C"
+	"io"
+	"unsafe"
+
+	"github.com/driusan/kernel/interrupts"
 )
 
 // Valid syscalls from Plan 9
@@ -59,7 +61,7 @@ const (
 	PRead
 	PWrite
 	TSemAcquire
-	_ // was: nsec, removed from Plan 9
+	_ // was: nsec, removed from 9front. Still used in Plan 9 Go?
 )
 
 //extern installInt
@@ -69,6 +71,8 @@ func InstallSyscallInterrupt() {
 	installIntC()
 }
 
+func _pwrite()
+
 func Syscall(r *interrupts.Registers) {
 	// TODO: Look these up in the real Plan9 src to make sure
 	// they're correct. These are the interrupts used by
@@ -77,9 +81,9 @@ func Syscall(r *interrupts.Registers) {
 	case 0: // SYSR1 (what is this?)
 	case 2: // unused (was _ERRSTR)
 	case 4: // close()
-	case 8: // exits()
+	case ExitS: // exits()
 		println("Should exits")
-	case 14: // open()
+	case Open: // open()
 		println("Should open")
 	case 17: // sleep()
 	case 19: // rfork
@@ -95,8 +99,81 @@ func Syscall(r *interrupts.Registers) {
 		println("Should pread")
 	case 51: // pwrite()
 		println("Should pwrite")
+		_pwrite()
 	case 52: // tsemacquire
 	case 53: // nsec?
 	}
 	println("In Plan9 syscall")
+}
+
+// Implements the syscall:
+//
+//	long pwrite(int fd, void *buf, long nbytes, vlong offset)
+//
+// This can't have a signature that's more idiomatic Go such as
+// 	func PWrite(fd FileDescriptor, []buf, int64 offset) (n, error)
+// because the syscalls in Plan 9's ABI are defined in terms of
+// C.
+func Pwrite(fd int, buf unsafe.Pointer, nbytes int32, offset int64) int32 {
+	println("FD", fd)
+	println("buf", buf)
+	println("nbytes", nbytes)
+	println("offset", offset)
+	if fd > len(activeProc.FDs) {
+		println("Invalid file descriptor")
+		return 0
+	}
+
+	// Convert *buf into a []byte for compatibility with the io.Writer
+	// interface
+	b := make([]byte, nbytes, nbytes)
+	for i := uintptr(0); i < uintptr(nbytes); i++ {
+		b[i] = *(*byte)(unsafe.Pointer(uintptr(buf) + uintptr(i)))
+	}
+
+	// TODO: Add a Mutex, to make sure Seek + Write is atomic.
+	if offset > 0 {
+		n, err := activeProc.FDs[fd].Seek(offset, io.SeekStart)
+		if err != nil {
+			println("Error seeking to offset: ", err.Error())
+			return 0
+		}
+		if n != offset {
+			println("Warning: Seek returned ", n, " not ", offset)
+		}
+	}
+	n, err := activeProc.FDs[fd].Write(b)
+	if err != nil {
+		println(err.Error())
+		println("Returning", n)
+		return int32(n)
+	}
+	println("Returning", n)
+	return int32(n)
+}
+
+type CString uintptr
+
+func Exits(s CString) {
+	println("In exits")
+	if s == 0 {
+		println("Successful exit!")
+		return
+	} else {
+		println(s)
+	}
+	// This should actually put it in a Waitmsg for the parent, but we're
+	// not that advanced yet. See exits(2).
+	println(s)
+	var c byte = *(*byte)(unsafe.Pointer(s))
+	for i := uintptr(s); c != 0; i++ {
+		c = *(*byte)(unsafe.Pointer(i))
+
+		print(c, " ")
+	}
+	if s == 0 {
+		println("No error on exit. Hooray!")
+	} else {
+		println("There should be an error printed above.")
+	}
 }

@@ -1,6 +1,6 @@
 package terminal
 
-import "C"
+import _ "C"
 
 import (
 	"unsafe"
@@ -8,16 +8,7 @@ import (
 	"github.com/driusan/kernel/asm"
 )
 
-// If we import C, the GCCGO cross-compiler claims we're not using it.
-// If we import it as _ "C", go test claims we can't rename it since it's
-// the real go tool chain.
-// This is a hack so that gmake, go test ./... and go fmt ./...
-// all work. C.Nothing is a struct{}, so hopefully this gets
-// optimized away by the compiler.
-type cNoop C.Nothing
-
 // TODO: Add vesa support and support for more than just printing text.
-
 const (
 	VGA_WIDTH  = 80
 	VGA_HEIGHT = 25

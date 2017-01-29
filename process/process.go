@@ -5,6 +5,9 @@ import "github.com/driusan/kernel/filesystem"
 type Process struct {
 	Namespace
 	Wd filesystem.Path
+
+	// Index i is File descriptor i
+	FDs []filesystem.File
 }
 
 func (p *Process) Cwd(path filesystem.Path) error {

@@ -9,6 +9,7 @@ import (
 	"unsafe"
 
 	"github.com/driusan/kernel/executable/plan9"
+	"github.com/driusan/kernel/process"
 )
 
 type ExeError string
@@ -17,7 +18,7 @@ func (e ExeError) Error() string {
 	return string(e)
 }
 
-func Run(r io.Reader) error {
+func Run(r io.Reader, p *process.Process) error {
 	header := make([]byte, 32)
 	n, err := r.Read(header)
 	if n != 32 {
@@ -28,5 +29,5 @@ func Run(r io.Reader) error {
 	}
 	// Making r a ReadSeeker is causing a kernel panic, disabling for now.
 	//r.Seek(0, 0)
-	return plan9.Run((*plan9.ExecHeader)(unsafe.Pointer(&header[0])), r)
+	return plan9.Run((*plan9.ExecHeader)(unsafe.Pointer(&header[0])), r, p)
 }

@@ -17,6 +17,9 @@ func Run() {
 		println(err.Error())
 		return
 	}
+
+	// STDIN, STDOUT, and STDERR all default to cons.
+	proc.FDs = []filesystem.File{cons, cons, cons}
 	prompt := []byte{'>', ' '}
 
 	cons.Write([]byte(`
@@ -128,7 +131,7 @@ Valid commands:
 						cons.Write([]byte(args))
 						cons.Write([]byte("\")"))
 					} else {
-						err = executable.Run(file)
+						err = executable.Run(file, &proc)
 						if err != nil {
 							cons.Write([]byte(err.Error()))
 						}

@@ -4,8 +4,9 @@ import (
 	"io"
 	"unsafe"
 
-	//"github.com/driusan/kernel/asm"
+	"github.com/driusan/kernel/asm"
 	"github.com/driusan/kernel/memory"
+	"github.com/driusan/kernel/process"
 )
 
 type Plan9Error string
@@ -14,9 +15,12 @@ func (p Plan9Error) Error() string {
 	return string(p)
 }
 
-func exec()
+// The currently running process, for syscalls to know what they're dealing with.
+// This should be a function of the CPU, not the package, but there's no CPU
+// type (or multiprocessing) yet.
+var activeProc *process.Process
 
-func Run(h *ExecHeader, r io.Reader) error {
+func Run(h *ExecHeader, r io.Reader, p *process.Process) error {
 	if h.Magic.Uint32() != Magic386 {
 		return Plan9Error("Invalid executable magic.")
 	}
@@ -45,23 +49,6 @@ func Run(h *ExecHeader, r io.Reader) error {
 		return err
 	}
 
-	/*
-		println("First byte", textSegment[0], "of", textSize, " at ", &textSegment[0])
-		println("Entry point", h.EntryPoint.Uint32())
-		println("Text segment (+10)")
-		for i := 0; i < 10; i++ {
-			//print("i", i, ":", textSegment[i], " ")
-			//print("i", i, ":", textSegment[h.EntryPoint.Uint32()+uint32(i)], " ")
-		}
-
-		//print(&textSegment[0])
-		//println("\nAddress By unsafe.Pointer: T0-10")
-		start := uintptr(unsafe.Pointer(&textSegment[0]))
-		for i := 0; i < 10; i++ {
-			print("i", i, ":", *(*byte)(unsafe.Pointer(start + uintptr(i))), " ")
-
-		}
-	*/
 	textAddr, err := memory.GetPhysicalAddress(unsafe.Pointer(&textSegment[0]))
 	if err != nil {
 		return nil
@@ -71,20 +58,6 @@ func Run(h *ExecHeader, r io.Reader) error {
 		return nil
 	}
 
-	// Now unsafely allocate the right amount without the
-	// slice overhead, and memmove the data into it.
-	/*
-		unsafeTextAddr, err := memory.Malloc(uint(textSize))
-		if err != nil {
-			return err
-		}
-		unsafeDataAddr, err := memory.Malloc(uint(dataSize))
-		if err != nil {
-			return err
-		}
-		memory.Move(unsafe.Pointer(unsafeTextAddr), unsafe.Pointer(&textSegment[0]), int(textSize))
-		memory.Move(unsafe.Pointer(unsafeDataAddr), unsafe.Pointer(&dataSegment[0]), int(dataSize))
-	*/
 	err = memory.LoadMap(
 		memory.MMapEntry{
 			uintptr(textAddr),
@@ -99,12 +72,13 @@ func Run(h *ExecHeader, r io.Reader) error {
 	if err != nil {
 		return err
 	}
-	println("Text size", textSize, " Data Size", dataSize)
-	println("Entry point? (Ignoring, using 0x20)", h.EntryPoint.Uint32())
-	println("Byte at start of write: ", textSegment[0x168c])
+	//println("Text size", textSize, " Data Size", dataSize)
+	//println("Entry point? (Ignoring, using 0x20)", h.EntryPoint.Uint32())
+	//println("Byte at start of write: ", textSegment[0x168c])
 
-	exec()
-	//asm.JMP(unsafe.Pointer(uintptr(0x20)))//h.EntryPoint.Uint32())))
+	activeProc = p
+	asm.JMP(unsafe.Pointer(uintptr(0x20)))
+	//asm.JMP(unsafe.Pointer(uintptr(h.EntryPoint.Uint32())))
 
 	// This should never be reached. The program exits with an interrupt
 	return Plan9Error("Run Plan9 style a.out file not yet implemented")

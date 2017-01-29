@@ -180,6 +180,7 @@ func KernelMain(magic uint32, bi *BootInfo) {
 		}
 	}
 
+	// TODO: Replace this with a real process.
 	shell.Run()
 
 	// Just sit around waiting for an interrupt now that everything
