@@ -6,6 +6,7 @@ import (
 	"unsafe"
 
 	"github.com/driusan/kernel/interrupts"
+	"github.com/driusan/kernel/terminal"
 )
 
 // Valid syscalls from Plan 9
@@ -115,10 +116,6 @@ func Syscall(r *interrupts.Registers) {
 // because the syscalls in Plan 9's ABI are defined in terms of
 // C.
 func Pwrite(fd int, buf unsafe.Pointer, nbytes int32, offset int64) int32 {
-	println("FD", fd)
-	println("buf", buf)
-	println("nbytes", nbytes)
-	println("offset", offset)
 	if fd > len(activeProc.FDs) {
 		println("Invalid file descriptor")
 		return 0
@@ -131,7 +128,9 @@ func Pwrite(fd int, buf unsafe.Pointer, nbytes int32, offset int64) int32 {
 		b[i] = *(*byte)(unsafe.Pointer(uintptr(buf) + uintptr(i)))
 	}
 
-	// TODO: Add a Mutex, to make sure Seek + Write is atomic.
+	// TODO: Add a Mutex, to make sure Seek + Write is atomic. (Is it
+	// necessary? This is an interrupt handler, it shouldn't be interrupted
+	// before the IRET call.)
 	if offset > 0 {
 		n, err := activeProc.FDs[fd].Seek(offset, io.SeekStart)
 		if err != nil {
@@ -145,35 +144,19 @@ func Pwrite(fd int, buf unsafe.Pointer, nbytes int32, offset int64) int32 {
 	n, err := activeProc.FDs[fd].Write(b)
 	if err != nil {
 		println(err.Error())
-		println("Returning", n)
 		return int32(n)
 	}
-	println("Returning", n)
 	return int32(n)
 }
 
 type CString uintptr
 
 func Exits(s CString) {
-	println("In exits")
 	if s == 0 {
-		println("Successful exit!")
 		return
-	} else {
-		println(s)
 	}
 	// This should actually put it in a Waitmsg for the parent, but we're
 	// not that advanced yet. See exits(2).
-	println(s)
-	var c byte = *(*byte)(unsafe.Pointer(s))
-	for i := uintptr(s); c != 0; i++ {
-		c = *(*byte)(unsafe.Pointer(i))
-
-		print(c, " ")
-	}
-	if s == 0 {
-		println("No error on exit. Hooray!")
-	} else {
-		println("There should be an error printed above.")
-	}
+	terminal.PrintCString(unsafe.Pointer(s))
+	println("There should be an error printed above.")
 }

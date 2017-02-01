@@ -50,7 +50,7 @@ func (f DevCons) Read(p []byte) (n int, err error) {
 
 func (f DevCons) Write(p []byte) (n int, err error) {
 	print(string(p))
-	return 0, nil
+	return len(p), nil
 }
 
 func (f DevCons) WriteByte(b byte) error {

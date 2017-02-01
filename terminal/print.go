@@ -1,5 +1,18 @@
 package terminal
 
+import (
+	"unsafe"
+)
+
+// Prints a CString. A memory address that ends when it reaches a \0.
+func PrintCString(s unsafe.Pointer) {
+	var b byte = *(*byte)(s)
+	for b != 0 {
+		b = *(*byte)(s)
+		PrintRune(rune(b))
+		s = unsafe.Pointer(uintptr(s) + 1)
+	}
+}
 func PrintRune(r rune) {
 	if r < 256 {
 		Term.PutChar(byte(r))

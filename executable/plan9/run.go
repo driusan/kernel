@@ -60,10 +60,14 @@ func Run(h *ExecHeader, r io.Reader, p *process.Process) error {
 
 	err = memory.LoadMap(
 		memory.MMapEntry{
+			uintptr(unsafe.Pointer(h)),
+			0,
+			32,
+		},
+		memory.MMapEntry{
 			uintptr(textAddr),
 			0,
 			uint(textSize)},
-		memory.MMapEntry{0, 0, 1},
 		memory.MMapEntry{
 			uintptr(dAddr),
 			0,
@@ -72,13 +76,9 @@ func Run(h *ExecHeader, r io.Reader, p *process.Process) error {
 	if err != nil {
 		return err
 	}
-	//println("Text size", textSize, " Data Size", dataSize)
-	//println("Entry point? (Ignoring, using 0x20)", h.EntryPoint.Uint32())
-	//println("Byte at start of write: ", textSegment[0x168c])
 
 	activeProc = p
-	asm.JMP(unsafe.Pointer(uintptr(0x20)))
-	//asm.JMP(unsafe.Pointer(uintptr(h.EntryPoint.Uint32())))
+	asm.JMP(unsafe.Pointer(uintptr(h.EntryPoint.Uint32())))
 
 	// This should never be reached. The program exits with an interrupt
 	return Plan9Error("Run Plan9 style a.out file not yet implemented")
