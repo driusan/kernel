@@ -2,6 +2,22 @@
 # with iret instead of ret
 
 .text
+.globl github_com_driusan_kernel_executable_plan9.execAddr
+github_com_driusan_kernel_executable_plan9.execAddr:
+	# Move the address of the new stack pointer into a register before we blow away the stack pointer
+	mov 4(%esp), %edx
+	# Move the kernel's stack into %gs, since we're about to overwrite the stack pointer
+	# mov %esp, %gs
+	
+	# Set up the new stack pointer for the new process.
+	mov 8(%esp), %esp
+
+	# FIXME: This just sets argc to 1 as a temporary hack.
+	movl $1, 0(%esp)
+	# jmp to the start point
+	jmp *%edx
+	
+.text
 .globl github_com_driusan_kernel_executable_plan9.p9int
 github_com_driusan_kernel_executable_plan9.p9int:
 	cli

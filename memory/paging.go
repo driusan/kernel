@@ -73,16 +73,16 @@ type MultibootMemoryMap struct {
 // virtual address space.
 type MMapEntry struct {
 	// The physical address to be mapped. Must be page aligned.
-	PAddr uintptr
+	PAddr PhysicalAddress
 	// The virtual address. The zero value for VAddr means
 	// "the next available address" when loading a map.
-	VAddr uint
+	VAddr VirtualAddress
 
 	// The size in bytes of the memory to be mapped.
 	Length uint
 }
 
-func GetPhysicalAddress(addr unsafe.Pointer) (uintptr, error) {
+func GetPhysicalAddress(addr VirtualAddress) (PhysicalAddress, error) {
 	t, e, err := getTableEntryForAddress(uintptr(addr))
 	if err != nil {
 		return 0, err
@@ -90,13 +90,13 @@ func GetPhysicalAddress(addr unsafe.Pointer) (uintptr, error) {
 
 	table := getPageTable(t)
 	adr := uintptr(table[e]) & 0xFFFFF000
-	return adr, nil
+	return PhysicalAddress(adr), nil
 }
 
 // Updates the page table so that for each segment in segments maps to
 // the physical address to the corresponding virtual address.
-func LoadMap(segments ...MMapEntry) error {
-	var startAddr uint
+func LoadMap(segments ...*MMapEntry) error {
+	var startAddr VirtualAddress
 
 	for _, me := range segments {
 		if me.PAddr%PageSize != 0 {
@@ -110,7 +110,7 @@ func LoadMap(segments ...MMapEntry) error {
 			me.VAddr = startAddr
 		}
 
-		for addr := me.VAddr; addr <= (me.VAddr + me.Length); addr += PageSize {
+		for addr := me.VAddr; addr <= (me.VAddr + VirtualAddress(me.Length)); addr += PageSize {
 			if addr >= 0xC0000000 {
 				return MemoryError("Can not remap kernel address space.")
 			}
